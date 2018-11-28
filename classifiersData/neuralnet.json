@@ -1,0 +1,16 @@
+{
+	"params":["size"],
+	"parents":["size"],
+	"size":
+	{
+		"type":"continuous",
+		"scale":"int",
+		"minVal":"1",
+		"maxVal":"8",
+		"default":"2",
+		"constraint":"any",
+		"requires":
+		{
+		}
+	}
+}

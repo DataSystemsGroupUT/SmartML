@@ -1,0 +1,28 @@
+{
+	"params":["M", "C", "B"],
+	"parents":["M", "C", "B"],
+	"M":
+	{
+		"default":"2",
+		"type":"continuous",
+		"scale":"int",
+		"minVal":"1",
+		"maxVal":"15",
+		"constraint":"any"
+	},
+	"B":
+	{
+		"default":"FALSE",
+		"type":"discrete",
+		"values":["TRUE", "FALSE"]
+	},
+	"C":
+	{
+		"default":"0.25",
+		"type":"continuous",
+		"minVal":"0.2",
+		"maxVal":"0.5",
+		"scale":"double",
+		"constraint":"any"
+	}
+}

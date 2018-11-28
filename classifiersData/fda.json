@@ -1,0 +1,25 @@
+{
+	"params":["method", "dimension"],
+	"parents":["method", "dimension"],
+	"dimension":
+	{
+		"default":"1",
+		"type":"continuous",
+		"scale":"int",
+		"minVal":"1",
+		"maxVal":"20",
+		"constraint":"any",
+		"requires":
+		{
+		}
+	},
+	"method":
+	{
+		"default":"polyreg",
+		"type":"discrete",
+		"values":["polyreg", "mars", "bruto", "gen.ridge"],
+		"requires":
+		{
+		}
+	}
+}

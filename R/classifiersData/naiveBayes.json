@@ -1,0 +1,29 @@
+{
+	"params":["eps", "laplace"],
+	"parents":["eps", "laplace"],
+	"eps":
+	{
+		"default":"-32",
+		"type":"continuous",
+		"minVal":"-6",
+		"maxVal":"-32",
+		"scale":"exp",
+		"constraint":"any",
+		"requires":
+		{	
+		}
+	},
+	"laplace":
+	{
+		"default":"0",
+		"type":"continuous",
+		"scale":"int",
+		"minVal":"0",
+		"maxVal":"9",
+		"constraint":"any",
+		"type":"discrete",
+		"requires":
+		{
+		}
+	}
+}

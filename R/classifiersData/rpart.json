@@ -1,0 +1,51 @@
+{
+	"params":["minsplit", "cp", "xval", "maxdepth"],
+	"parents":["minsplit", "cp", "xval", "maxdepth"],
+	"minsplit":
+	{
+		"type":"continuous",
+		"scale":"int",
+		"minVal":"2",
+		"maxVal":"40",
+		"default":"20",
+		"constraint":"any",
+		"requires":
+		{
+		}
+	},
+	"maxdepth":
+	{
+		"type":"continuous",
+		"scale":"int",
+		"minVal":"5",
+		"maxVal":"30",
+		"default":"20",
+		"constraint":"any",
+		"requires":
+		{
+		}
+	},
+	"cp":
+	{
+		"default":"-11",
+		"type":"continuous",
+		"minVal":"-14",
+		"maxVal":"-7",
+		"scale":"exp",
+		"requires":
+		{
+		}
+	},
+	"xval":
+	{
+		"type":"continuous",
+		"scale":"int",
+		"minVal":"1",
+		"maxVal":"20",
+		"default":"5",
+		"constraint":"any",
+		"requires":
+		{
+		}
+	}
+}

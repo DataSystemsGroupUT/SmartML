@@ -1,0 +1,13 @@
+Package: AutoRLearn
+Type: Package
+Title: Machine Learning Automation
+Version: 1.0
+Author: Mohamed Maher, Prof. Sherif Sakr
+Maintainer: Mohamed Maher <m.maher525@gmail.com>
+Description: This package is used in the process of Automation of Machine Learning Tasks by simplifying the process of automatic classifier algorithm selection in addition to hyper-parameter optimization.
+License: GPL-2
+Encoding: UTF-8
+LazyData: true
+Imports: 
+Depends: rjson, e1071, tictoc, RMySQL, caret, randomForest, FNN, klaR
+Suggests:

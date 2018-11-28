@@ -1,0 +1,197 @@
+#' @title Run Classifier Algorithm
+#' @description Run Classifier Algorithm using specific parameters on a training section and measure output on validation section
+#' @param trainingSet the path to the dataset
+#' @param validationSet maximum time in minutes to run the automation process
+#' @param params set of parameters to use
+#' @param classifierAlgorithm type of classifier algorithm to use
+#' @keywords AutoML, SMAC
+#' @seealso \code{\link[utils]{head}}
+#' @return performance of classifier Algorithm on validation set
+#' @examples \dontrun{ runClassifier(trainingSet, validationSet, params, classifierAlgorithm)
+#' }
+runClassifier <- function(trainingSet, validationSet, params, classifierAlgorithm, interp = 0) {
+  library(pls)
+  library(e1071)
+  library(randomForest)
+  library(FNN)
+  library(klaR)
+  library(rpart)
+  library(ipred)
+  library(RWeka)
+  library(C50)
+  library(rpart)
+  library(MASS)
+  library(klaR)
+  library(caret)
+  library(stats)
+  library(mda)
+  library(nnet)
+  library(deepboost)
+  #training set features and classes
+  xFeatures <- subset(trainingSet, select = -class)
+  xClass <- c(subset(trainingSet, select = class)$'class')
+  #validation set features and classes
+  yFeatures <- subset(validationSet, select = -class)
+  yClass <- c(subset(validationSet, select = class)$'class')
+  #remove not available parameters
+  for(i in colnames(params)){
+    if(is.na(params[[i]]) || params[[i]] == 'NA'){
+      params <- subset(params, select = -get(i))
+    }
+  }
+  possibleError <- try(
+    {
+      #build model
+      if(classifierAlgorithm == 'svm'){
+        if(exists('gamma', where=params) && !is.na(params$gamma))
+          params$gamma <- (2^ as.double(params$gamma))
+        if(exists('cost', where=params) && !is.na(params$cost))
+          params$cost <- (2^ as.double(params$cost))
+        if(exists('tolerance', where=params) && !is.na(params$tolerance))
+          params$tolerance <- (2^ as.double(params$tolerance))
+        #print(params)
+        model <- do.call(svm,c(list(x = xFeatures, y = xClass, type = 'C-classification'), params))
+        #interpret(model, xFeatures, xClass, 2)
+        #check performance
+        pred <- predict(model, yFeatures)
+      }
+      else if(classifierAlgorithm == 'plsda'){
+        params$ncomp <- as.numeric(params$ncomp)
+        model <- caret:::plsda(xFeatures, as.factor(xClass), ncomp = params$ncomp, probMethod = params$probMethod, type = "class")
+        pred <- predict(model, yFeatures)
+      }
+      else if(classifierAlgorithm == 'knn'){
+        #cat('params: ', params, '\n')
+        params <- as.numeric(params)
+        pred <- do.call(knn,c(list(train = xFeatures, test = yFeatures, cl=xClass), params))
+      }
+
+      else if(classifierAlgorithm == 'neuralnet'){
+        params <- as.numeric(params)
+        learn <- cbind(xClass, xFeatures)
+        model <- nnet(as.factor(xClass) ~., data = learn, size = params)
+        pred <- predict(model, yFeatures, type = "class")
+      }
+      else if(classifierAlgorithm == 'naiveBayes'){
+        params$laplace <- as.numeric(params$laplace)
+        params$eps <- (2 ^ as.numeric(params$eps))
+        learn <- cbind(xClass, xFeatures)
+        model <- naiveBayes(as.factor(xClass) ~., data = learn, laplace = params$laplace, eps = params$eps)
+        pred <- predict(model, yFeatures)
+      }
+      else if(classifierAlgorithm == 'part'){
+        params$C <- as.numeric(params$C)
+        params$M <- as.numeric(params$M)
+        learn <- cbind(xClass, xFeatures)
+        model <- PART(as.factor(xClass) ~., data = learn, control = Weka_control(C = params$C, M = params$M, B = params$B))
+        pred <- predict(model, yFeatures)
+      }
+      else if(classifierAlgorithm == 'lda'){
+        params$tol <- (2 ^ as.numeric(params$tol))
+        learn <- cbind(xClass, xFeatures)
+        model <- lda(as.factor(xClass) ~., data = learn, tol = params$tol, method = params$method)
+        pred <- predict(model, yFeatures)$class
+      }
+      else if(classifierAlgorithm == 'rpart'){
+        params$minsplit <- as.numeric(params$minsplit)
+        params$maxdepth <- as.numeric(params$maxdepth)
+        params$xval <- as.numeric(params$xval)
+        params$cp <- (2^ as.numeric(params$cp))
+        learn <- cbind(xClass, xFeatures)
+        model <- rpart(as.factor(xClass) ~., data = learn, control = rpart.control(minsplit = params$minsplit, maxdepth = params$maxdepth, xval = params$xval, cp = params$cp) )
+        pred <- predict(model, yFeatures)
+      }
+      else if(classifierAlgorithm == 'j48'){
+        params$C <- as.numeric(params$C)
+        params$M <- as.numeric(params$M)
+        learn <- cbind(xClass, xFeatures)
+        model <- J48(as.factor(xClass) ~., data = learn, control = Weka_control(C = params$C, M = params$M, B = params$B) )
+        pred <- predict(model, yFeatures)
+      }
+      else if(classifierAlgorithm == 'lmt'){
+        params$M <- as.numeric(params$M)
+        learn <- cbind(xClass, xFeatures)
+        model <- LMT(as.factor(xClass) ~., data = learn, control = Weka_control(M = params$M) )
+        pred <- predict(model, yFeatures)
+      }
+      else if(classifierAlgorithm == 'c50'){
+        params$CF <- as.numeric(params$CF)
+        params$minCases <- as.numeric(params$minCases)
+        params$trials = as.numeric(params$trials)
+        learn <- cbind(xClass, xFeatures)
+        model <- C5.0(as.factor(xClass) ~., data = learn, trials = params$trials, control = C5.0Control(CF = params$CF, earlyStopping = params$earlyStopping, fuzzyThreshold = params$fuzzyThreshold, minCases = params$minCases))
+        pred <- predict(model, yFeatures)
+      }
+      else if(classifierAlgorithm == 'bagging'){
+        params$nbagg <- as.numeric(params$nbagg)
+        params$xval <- as.numeric(params$xval)
+        params$minsplit <- as.numeric(params$minsplit)
+        params$cp <- as.numeric(params$cp)
+        params$cp <- (2^ params$cp)
+        params$maxdepth <- as.numeric(params$maxdepth)
+        learn <- cbind(xClass, xFeatures)
+        model <- bagging(as.factor(xClass) ~., data = learn, nbagg = params$nbagg, control = rpart.control(minsplit = params$minsplit, cp = params$cp, xval = params$xval, maxdepth = params$maxdepth) )
+        #interpret(model, xFeatures, xClass, 2)
+        pred <- predict(model, yFeatures, type="class")
+      }
+      else if(classifierAlgorithm == 'deepboost'){
+        learn <- cbind(xClass, xFeatures)
+        params$num_iter <- as.numeric(params$num_iter)
+        params$tree_depth <- as.numeric(params$tree_depth)
+        params$beta <- as.numeric(params$beta)
+        params$lambda <- as.numeric(params$lambda)
+        model <- deepboost(as.factor(xClass) ~., data = learn, num_iter = params$num_iter, beta = params$beta, lambda = params$lambda, loss_type = params$loss_type, verbose = FALSE)
+        pred <- predict(model, yFeatures)
+      }
+      else if(classifierAlgorithm == 'fda'){
+        learn <- cbind(xClass, xFeatures)
+        params$dimension <- as.numeric(params$dimension)
+        J <- length(unique(xClass))
+        params$dimension <- min(params$dimension, J-1)
+        if (params$method == 'mars')m <- mars
+        else if(params$method == 'bruto') m <- bruto
+        else if(params$method == 'gen.ridge') m <- gen.ridge
+        else m <- polyreg
+
+        model <- fda(as.factor(xClass) ~., data = learn, dimension = params$dimension, method = m)
+        pred <- predict(model, yFeatures)
+      }
+      else if(classifierAlgorithm == 'rda'){
+        params$gamma <- as.numeric(params$gamma)
+        params$lambda <- as.numeric(params$lambda)
+        learn <- cbind(xClass, xFeatures)
+        model <- rda(as.factor(xClass) ~., data = learn, gamma = params$gamma, lambda = params$lambda)
+        pred <- predict(model, yFeatures)$class
+      }
+      else if(classifierAlgorithm == 'glm'){
+        learn <- cbind(xClass, xFeatures)
+        print(params$variance)
+        model <- glm(xClass ~., data = learn, family = params$family)
+        pred <- predict(model, yFeatures, type="response")
+        print(pred)
+      }
+      else if(classifierAlgorithm == 'randomForest'){
+        params$mtry <- as.numeric(params$mtry)
+        params$ntree <- as.numeric(params$ntree)
+        params$mtry <- min(params$mtry, ncol(xFeatures))
+        model <- do.call(randomForest,c(list(x = xFeatures, y = as.factor(xClass)), params))
+        #interpret(model, xFeatures, xClass, 2)
+        #check performance
+        pred <- predict(model, yFeatures)
+      }
+      perf <- length(which(pred==yClass))/length(pred)
+    }
+  )
+  if(inherits(possibleError, "try-error")){
+    print('Failed Run: These parameters configuration failed with current dataset')
+    return(0)
+  }
+  if(interp == 1 && classifierAlgorithm != 'knn'){
+    result <- list()
+    result$interact <- interpret(model, validationSet)
+    result$perf <- perf
+    return(result)
+  }
+
+  return (perf)
+}

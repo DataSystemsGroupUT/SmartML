@@ -1,0 +1,25 @@
+{
+	"params":["probMethod", "ncomp"],
+	"parents":["probMethod", "ncomp"],
+	"probMethod":
+	{
+		"type":"discrete",
+		"values":["softmax", "Bayes"],
+		"default":"softmax",
+		"requires":
+		{
+		}
+	},
+	"ncomp":
+	{
+		"type":"continuous",
+		"scale":"int",
+		"minVal":"1",
+		"maxVal":"10",
+		"default":"5",
+		"constraint":"any",
+		"requires":
+		{
+		}
+	}
+}
