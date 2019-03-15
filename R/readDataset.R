@@ -22,6 +22,7 @@ readDataset <- function(directory, vRatio = 0.1, selectedFeats, classCol, prePro
   library(RWeka)
   library(farff)
   library(caret)
+
   #check if CSV or arff
   ext <- substr(directory, nchar(directory)-2, nchar(directory))
   #Read CSV file of data
@@ -33,7 +34,7 @@ readDataset <- function(directory, vRatio = 0.1, selectedFeats, classCol, prePro
   else
     data <- readARFF(directory)
 
-  print(names(data))
+  #print(names(data))
   #change column name of classes to be "class"
   colnames(data)[which(names(data) == classCol)] <- "class"
   cInd <- grep("class", colnames(data)) #index of class column
@@ -45,11 +46,10 @@ readDataset <- function(directory, vRatio = 0.1, selectedFeats, classCol, prePro
   #perform preprocessing
   if(preProcessF != 'N'){
     if(length(featuresToPreProcess ) == 0)
-      featuresToPreProcess <- c(1:ncol(data))
+      featuresToPreProcess <- selectedFeats
 
     featuresToPreProcess <- featuresToPreProcess[!featuresToPreProcess %in% cInd] #remove class column from set of features to be preprocessed
-    dataTmp <- data[,featuresToPreProcess]
-    dataTmp <- featurePreProcessing(dataTmp, preProcessF, nComp)
+    dataTmp <- featurePreProcessing(data[,featuresToPreProcess], preProcessF, nComp)
     #add other features that don't require feature preprocessing to the features obtained after preprocessing
     diffTmp <- setdiff(selectedFeats, c(cInd, featuresToPreProcess))
     dataTmp <- cbind(dataTmp, data[, diffTmp])

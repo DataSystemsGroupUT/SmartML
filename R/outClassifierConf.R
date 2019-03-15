@@ -3,12 +3,12 @@
 #' @description Get the classifier parameter configuration in a human readable format.
 #'
 #' @param classifierName String of the name of classifier algorithm used now.
-#' @param result List of the parameters names of \code{classifierName}
-#' @param initParams String of parameters values of \code{classifierName} separated by #
+#' @param result List of the converted classifier json parameter configuration into set of vectors and lists.
+#' @param initParams String of parameters of \code{classifierName} separated by #.
 #'
-#' @return String of the human readable output in HTML format
+#' @return String of the human readable output in HTML format.
 #'
-#' @examples outClassifierConf('knn', ,)
+#' @examples outClassifierConf('knn', list(params = c('k'), parents = c('k'), k = list(default = '7', require = c())), '1')
 #'
 #' @noRd
 #'

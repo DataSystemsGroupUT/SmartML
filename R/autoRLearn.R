@@ -17,7 +17,7 @@
 #' "normalize": normalize values,
 #' "pca": transform data to the principal components,
 #' "ica": transform data to the independent components.
-#' @param featuresToPreProcess Vector of number of features to perform the feature preprocessing on - In case of empty vector, this means to include all features in the dataset file (default = c()).
+#' @param featuresToPreProcess Vector of number of features to perform the feature preprocessing on - In case of empty vector, this means to include all features in the dataset file (default = c()) - This vector should be a subset of \code{selectedFeats}.
 #' @param nComp Integer of Number of components needed if either "pca" or "ica" feature preprocessors are needed.
 #' @param nModels Integer representing the number of best classifier algorithms that you want the tool to output.
 #' @param options Integer representing either Classifier Algorithm Selection is needed only = 1 or Algorithm selection with its parameter tuning is required = 2 which is the default value.
@@ -27,18 +27,30 @@
 #' @return List of Choosen parameter configurations for the \code{nModels} classifiers.
 #'
 #' @examples
+#' autoRLearn(10, '../sampleDatasets/car/train.arff')
+#' autoRLearn(60, '../sampleDatasets/satImage/train.arff', classCol = 'label', nModels = 5)
+#' autoRLearn(30, '../sampleDatasets/EEGEyeState/train.csv', preProcessF = 'standardize')
+#' autoRLearn(25, '../sampleDatasets/shuttle/train.arff', preProcessF = 'pca', nComp = 2, nModels = 1)
+#' autoRLearn(1, '../sampleDatasets/waveform/train.arff', options = 1)
+#' autoRLearn(120, '../sampleDatasets/churn/train.arff', preProcessF = 'center', featuresToPreProcess = c(1,2,3,4), vRatio = 0.2)
 #'
 #' @export
 
 autoRLearn <- function(maxTime, directory, classCol = 'class', selectedFeats = c(), vRatio = 0.1, preProcessF = 'N', featuresToPreProcess = c(), nComp = NA, nModels = 3, option = 2, featureTypes = c(), interp = 0) {
   library(tictoc)
   #Read Dataset
-  dataset <- readDataset(directory, selectedFeats = selectedFeats, classCol = classCol, vRatio = vRatio, preProcessF = preProcessF, featuresToPreProcess = featuresToPreProcess, nComp = nComp)
-  trainingSet <- dataset$TD
-  #return()
+  datasetReadError <- try(
+  {
+    dataset <- readDataset(directory, selectedFeats = selectedFeats, classCol = classCol, vRatio = vRatio, preProcessF = preProcessF, featuresToPreProcess = featuresToPreProcess, nComp = nComp)
+    trainingSet <- dataset$TD
+  })
+  if(inherits(datasetReadError, "try-error")){
+    print('Failed Reading Dataset: Makesure that dataset directory is correct and it is a valid csv/arff file.')
+    return(0)
+  }
+
   #Calculate Meta-Features for the dataset
   tic(quiet = TRUE)
-
   metaFeatures <- computeMetaFeatures(trainingSet, maxTime, featureTypes)
 
   #Convert Categorical to Numerical
