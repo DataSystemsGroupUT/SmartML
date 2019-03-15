@@ -9,6 +9,8 @@
 #' @param preProcessF String of the preprocessing algorithm to apply.
 #' @param featuresToPreProcess Vector of numbers of features columns to perform preprocessing - empty vector means all features.
 #' @param nComp Number of components needed if either "pca" or "ica" feature preprocessors are needed.
+#' @param missingVal Vector of strings representing the missing values in dataset.
+#' @param missingOpr Boolean variable represents either delete instances with missing values or apply imputation using "MICE" library - (default = 0 --> delete instances).
 #'
 #' @return List of the Training and Validation Sets splits.
 #'
@@ -18,11 +20,11 @@
 #'
 #' @keywords internal
 
-readDataset <- function(directory, vRatio = 0.1, selectedFeats, classCol, preProcessF, featuresToPreProcess, nComp) {
+readDataset <- function(directory, vRatio = 0.1, selectedFeats, classCol, preProcessF, featuresToPreProcess, nComp, missingVal, missingOpr) {
   library(RWeka)
   library(farff)
   library(caret)
-
+  library(mice)
   #check if CSV or arff
   ext <- substr(directory, nchar(directory)-2, nchar(directory))
   #Read CSV file of data
@@ -38,8 +40,16 @@ readDataset <- function(directory, vRatio = 0.1, selectedFeats, classCol, prePro
   #change column name of classes to be "class"
   colnames(data)[which(names(data) == classCol)] <- "class"
   cInd <- grep("class", colnames(data)) #index of class column
-  #remove instances with missing data
-  data <- data[complete.cases(data), ]
+  #Convert characters representing missing values to NA
+  m1 <- as.matrix(data)
+  m1[m1 %in% missingVal] <- NA
+
+  #check either to delete instance with missing values or perform imputation
+  if (missingOpr == 0)
+    data <- data[complete.cases(m1), ]
+  else
+    data <- complete(mice(data, m = 1))
+
   #select features only upon user request
   if(length(selectedFeats) == 0)
     selectedFeats <- c(1:ncol(data))

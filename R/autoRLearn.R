@@ -2,7 +2,7 @@
 #'
 #' @description Run the smartML main function for automatic classifier algorithm selection, and hyper-parameter tuning.
 #'
-#' @param maxTime Float of the maximum time budget for hyper-parameter tuning process in minutes.
+#' @param maxTime Float of the maximum time budget for reading dataset, preprocessing, calculating meta-features, Algorithm Selection & hyper-parameter tuning process only in minutes(Excluding Model Interpretability).
 #' @param directory String of the training dataset directory (SmartML accepts file formats arff/(csv with columns headers) ).
 #' @param classCol String of the name of the class label column in the dataset (default = 'class').
 #' @param selectedFeats Vector of numbers of features columns to include from the training set and ignore the rest of columns - In case of empty vector, this means to include all features in the dataset file (default = c()).
@@ -22,7 +22,9 @@
 #' @param nModels Integer representing the number of best classifier algorithms that you want the tool to output.
 #' @param options Integer representing either Classifier Algorithm Selection is needed only = 1 or Algorithm selection with its parameter tuning is required = 2 which is the default value.
 #' @param featureTypes Vector of either 'numerical' or 'categorical' representing the types of features in the dataset (default = c() --> any factor or character features will be considered as categorical otherwise numerical).
-#' @param interp Boolean representing if model interpretability (Feature Importance and Interaction) is needed or not (default = 0 --> No) This option will take more time budget if set to 1.
+#' @param interp Boolean representing if model interpretability (Feature Importance and Interaction) is needed or not (default = 0) This option will take more time budget if set to 1.
+#' @param missingValues Vector of strings representing the missing values in dataset (default: c('NA', '?', ' ')).
+#' @param missingOpr Boolean variable represents either delete instances with missing values or apply imputation using "MICE" library which helps you imputing missing values with plausible data values that are drawn from a distribution specifically designed for each missing datapoint- (default = 0 --> delete instances).
 #'
 #' @return List of Choosen parameter configurations for the \code{nModels} classifiers.
 #'
@@ -36,12 +38,12 @@
 #'
 #' @export
 
-autoRLearn <- function(maxTime, directory, classCol = 'class', selectedFeats = c(), vRatio = 0.1, preProcessF = 'N', featuresToPreProcess = c(), nComp = NA, nModels = 3, option = 2, featureTypes = c(), interp = 0) {
+autoRLearn <- function(maxTime, directory, classCol = 'class', selectedFeats = c(), vRatio = 0.1, preProcessF = 'N', featuresToPreProcess = c(), nComp = NA, nModels = 3, option = 2, featureTypes = c(), interp = 0, missingVal = C('NA', '?', ' '), missingOpr = 0) {
   library(tictoc)
   #Read Dataset
   datasetReadError <- try(
   {
-    dataset <- readDataset(directory, selectedFeats = selectedFeats, classCol = classCol, vRatio = vRatio, preProcessF = preProcessF, featuresToPreProcess = featuresToPreProcess, nComp = nComp)
+    dataset <- readDataset(directory, selectedFeats = selectedFeats, classCol = classCol, vRatio = vRatio, preProcessF = preProcessF, featuresToPreProcess = featuresToPreProcess, nComp = nComp, missingVal = missingVal)
     trainingSet <- dataset$TD
   })
   if(inherits(datasetReadError, "try-error")){
