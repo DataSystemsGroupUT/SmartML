@@ -1,13 +1,18 @@
-Package: AutoRLearn
+Package: SmartML
 Type: Package
 Title: Machine Learning Automation
-Version: 1.0
-Author: Mohamed Maher, Prof. Sherif Sakr
-Maintainer: Mohamed Maher <m.maher525@gmail.com>
-Description: This package is used in the process of Automation of Machine Learning Tasks by simplifying the process of automatic classifier algorithm selection in addition to hyper-parameter optimization.
+Version: 0.1.0
+Author: Mohamed Maher
+Maintainer: The package maintainer <yourself@somewhere.net>
+Description: SmartML is a meta learning-based framework for automated selection and hyperparameter tuning for machine learning algorithms. 
+    Being meta-learning based, the framework is able to simulate the role of the machine learning expert.
+In particular, the framework is equipped with a continuously updated knowledge base that stores information about the meta-features of all processed datasets along with the associated performance of the different classifiers and their tuned parameters. 
+Thus, for any new dataset, SmartML automatically extracts its meta features and searches its knowledge base for the best performing algorithm to start its optimization process. 
+In addition, SmartML makes use of the new runs to continuously enrich its knowledge base to improve its performance and robustness for future runs.
 License: GPL-2
 Encoding: UTF-8
 LazyData: true
-Imports: 
-Depends: rjson, e1071, tictoc, RMySQL, caret, randomForest, FNN, klaR
+Imports:
+  stats,RCurl,tictoc,e1071,caret,mlbench,fastICA,RMySQL,BBmisc,rjson,ggplot2,RWeka,farff,pls,randomForest,FNN,klaR,rpart,ipred,C50,mda,MASS,nnet,deepboost,iml,datasets,aws.s3,xts
 Suggests:
+  knitr

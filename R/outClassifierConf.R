@@ -1,12 +1,19 @@
-#' @title Output Classifier Configuration into a readable string
-#' @description Get Default parameters of certain classifier algorithm
-#' @param classifierName Name of Classifier Algorithm
-#' @param result Data Frame from the JSON of parameters of classifier
-#' @keywords AutoML, SmartML
-#' @seealso \code{\link[utils]{head}}
-#' @return String of Classifier Parameters
-#' @examples \dontrun{ outClassifierConf(classifierAlgorithm, classifierConf)
-#' }
+#' @title Output Classifier Parameter Configuration.
+#'
+#' @description Get the classifier parameter configuration in a human readable format.
+#'
+#' @param classifierName String of the name of classifier algorithm used now.
+#' @param result
+#' @param initParams String of parameters of \code{classifierName} separated by #
+#'
+#' @return String of the human readable output in HTML format
+#'
+#' @examples outClassifierConf('knn', ,)
+#'
+#' @noRd
+#'
+#' @keywords internal
+
 outClassifierConf <- function(classifierName, result, initParams) {
   #get list of Classifier Parameters
   params <- result$params
@@ -35,7 +42,7 @@ outClassifierConf <- function(classifierName, result, initParams) {
     out <- paste(out, ' -<i>', i, ':</i>', initParams[j], collapse = '')
     j <- j + 1
   }
-  #print('%%%%%%%%')
+
   #print(out)
   return(out)
 }

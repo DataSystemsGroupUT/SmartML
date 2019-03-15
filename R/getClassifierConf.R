@@ -1,11 +1,17 @@
-#' @title Read Classifier Parameters
-#' @description Read Classifier Algorithm Parameters from Json file
-#' @param classifierName classifier Algorithm Name
-#' @keywords AutoML, SMAC
-#' @seealso \code{\link[utils]{head}}
-#' @return Data Frame of Classifier Parameters
-#' @examples \dontrun{ getClassifierConf(classifierAlgorithm)
-#' }
+#' @title Get Classifier Parameters Configuration.
+#'
+#' @description Read the Json file of the configuration of the parameters of a specific classifier.
+#'
+#' @param classifierName String value of the classifier Name.
+#'
+#' @return List of the parameters of the classifier.
+#'
+#' @examples getClassifierConf('knn').
+#'
+#' @noRd
+#'
+#' @keywords internal
+
 getClassifierConf <- function(classifierName) {
   library("rjson")
   #Open the Classifier Parameters Configuration File

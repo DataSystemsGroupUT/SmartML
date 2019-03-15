@@ -1,14 +1,17 @@
-#' @title AutoRLearn Initialize
-#' @description Get Default parameters of certain classifier algorithm
-#' @param classifierName Name of Classifier Algorithm
-#' @param result Data Frame from the JSON of parameters of classifier
-#' @param trainingSet Training section of the dataset
-#' @param validationSet validation section of the dataset
-#' @keywords AutoML, SMAC
-#' @seealso \code{\link[utils]{head}}
-#' @return Best Classifier with parameters used
-#' @examples \dontrun{ initialize(classifierAlgorithm, trainingSet, validationSet, classifierConf)
-#' }
+#' @title
+#'
+#' @description
+#'
+#' @param
+#'
+#' @return
+#'
+#' @examples
+#'
+#' @noRd
+#'
+#' @keywords internal
+
 initialize <- function(classifierName, trainingSet, validationSet, result, initParams) {
   #get list of Classifier Parameters
   params <- result$params

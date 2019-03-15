@@ -1,18 +1,27 @@
-#' @title Intensify
-#' @description Compare performance of Candidates compared to selected best Parameters
-#' @param R list of tested configurations
-#' @param bestparams set of best parameters found till now
-#' @param bestPerf performance of best parameters on forest trees' folds
-#' @param candidateConfs list of candidate configurations
-#' @param foldedSet numbers of instances in each fold of trees of random forest
-#' @param trainingSet the path to the dataset
-#' @param validationSet maximum time in minutes to run the automation process
-#' @param classifierAlgorithm type of classifier algorithm to use
-#' @keywords AutoML, SMAC
-#' @seealso \code{\link[utils]{head}}
-#' @return performance of classifier Algorithm on validation set
-#' @examples \dontrun{ runClassifier(trainingSet, validationSet, params, classifierAlgorithm)
-#' }
+#' @title Intensify of SMAC model
+#'
+#' @description Checking if current candidate parameter configuration is better than the current best parameter configuration chosen till now or not.
+#'
+#' @param R Dataframe of tried out candidate parameter configurations.
+#' @param bestParams String of best parameter configuration found till now.
+#' @param bestPerf Vector of performance of classifier on all folds of dataset.
+#' @param candidateConfs Vector of strings of candidate parameter configurations.
+#' @param trainingSet Dataframe of the training set.
+#' @param validationSet Dataframe of the validation Set.
+#' @param foldedSet List of the folds of the dataset in each tree of the SMAC forest.
+#' @param classifierAlgorithm  String value of the classifier Name.
+#' @param maxTime Float of maximum time budget allowed.
+#' @param timeTillNow Float of the time spent till now.
+#' @param B number of trees in the forest of trees of SMAC optimization algorithm (default = 10).
+#'
+#' @return List of current best parameter configuration, its performance, dataframe of tried out candidate parameter configurations, and time till now.
+#'
+#' @examples intensify(c('1'), '1', c(0.89, 0.91), list(c(1,2,4), c(3,5)), data.frame(salary = c(623, 515, 611, 729, 843), class = c (0, 0, 0, 1, 1)), data.frame(salary = c(400, 800), class = c (0, 1)), 'knn', 100, 5, 2)
+#'
+#' @noRd
+#'
+#' @keywords internal
+
 intensify <- function(R, bestParams, bestPerf, candidateConfs, foldedSet, trainingSet, validationSet, classifierAlgorithm, maxTime, timeTillNow , B = 10) {
   cat('TIME TILL NOW: ', timeTillNow, '\n')
   for(j in 1:nrow(candidateConfs)){

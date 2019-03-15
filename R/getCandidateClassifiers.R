@@ -1,3 +1,17 @@
+#' @title
+#'
+#' @description
+#'
+#' @param
+#'
+#' @return
+#'
+#' @examples
+#'
+#' @noRd
+#'
+#' @keywords internal
+
 getCandidateClassifiers <- function(maxTime=10, metaFeatures, nModels = 3) {
   library(RMySQL)
   library(BBmisc)

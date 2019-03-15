@@ -1,14 +1,21 @@
-#' @title generate Candidate Configurations
-#' @description Generate list of candidate configurations based on Expected Improvement computed from previous tested configurations
-#' @param R list of tested configurations
-#' @param classifierAlgorithm type of classifier algorithm to use
-#' @param tree SMAC random Forest model
-#' @param bestparams set of best parameters found till now
-#' @keywords AutoML, SMAC
-#' @seealso \code{\link[utils]{head}}
-#' @return list of candidate configurations
-#' @examples \dontrun{ selectConfiguration(R, classifierAlgorithm, tree, bestParams)
-#' }
+#' @title Select Candidate Parameter Configuration
+#'
+#' @description Generate neighbor parameter configurations, sort them according to the expected improvement, and select the top promising ones as candidate configurations.
+#'
+#' @param R Dataframe of tried out parameter configurations.
+#' @param classifierAlgorithm String value of the classifier Name.
+#' @param tree List of data frames, representing the data structure for the forest of trees of the SMAC model.
+#' @param bestParams String of best parameter configuration found till now.
+#' @param B number of trees in the forest of trees of SMAC optimization algorithm (default = 10).
+#'
+#' @return Vector of strings of candidate parameter configurations.
+#'
+#' @examples selectConfiguration(c('1'), 'knn', data.frame(fold = c(), parent = c(), params = c(), leftChild = c(), rightChild = c(), performance = c(), rowN = c()), '1', 10)
+#'
+#' @noRd
+#'
+#' @keywords internal
+
 selectConfiguration <- function(R, classifierAlgorithm, tree, bestParams, B = 10) {
   cat('CURRENT CLASSIFIER: ', classifierAlgorithm, '\nbestParams till now:\n')
   print(bestParams)

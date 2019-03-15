@@ -1,12 +1,14 @@
-#' @title AutoRLearn Main
-#' @description Main Function to perform auto classifier Selection and hyper parameter optimization
-#' @param directory the path to the dataset
-#' @param maxTime maximum time in minutes to run the automation process
-#' @keywords AutoML, SMAC
-#' @seealso \code{\link[utils]{head}}
-#' @return Best Classifier with parameters used
-#' @examples \dontrun{ mainSMAC(0.1, './datasets/EEGEyeState/EEGEyeState.csv')
-#' }
+#' @title
+#'
+#' @description
+#'
+#' @param
+#'
+#' @return
+#'
+#' @examples
+#'
+#' @export
 
 autoRLearn <- function(maxTime, directory, classCol = 'class', selectedFeats = c(), vRatio = 0.1, preProcessF = 'N', featuresToPreProcess = c(), nComp = NA, nModels = 3, option = 2, featureTypes = c(), interp = 0) {
   library(tictoc)

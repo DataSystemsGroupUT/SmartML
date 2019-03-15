@@ -1,14 +1,21 @@
-#' @title Run Classifier Algorithm
-#' @description Run Classifier Algorithm using specific parameters on a training section and measure output on validation section
-#' @param trainingSet the path to the dataset
-#' @param validationSet maximum time in minutes to run the automation process
-#' @param params set of parameters to use
-#' @param classifierAlgorithm type of classifier algorithm to use
-#' @keywords AutoML, SMAC
-#' @seealso \code{\link[utils]{head}}
-#' @return performance of classifier Algorithm on validation set
-#' @examples \dontrun{ runClassifier(trainingSet, validationSet, params, classifierAlgorithm)
-#' }
+#' @title Fit a classifier model.
+#'
+#' @description Run the classifier on a training set and measure performance on a validation set.
+#'
+#' @param trainingSet Dataframe of the training set.
+#' @param validationSet Dataframe of the validation Set.
+#' @param params A string of parameter configuration values for the current classifier to be tuned (parameters are separated by #).
+#' @param classifierAlgorithm String of the name of classifier algorithm used now.
+#' @param interp Boolean representing if interpretability is required or not.
+#'
+#' @return
+#'
+#' @examples
+#'
+#' @noRd
+#'
+#' @keywords internal
+
 runClassifier <- function(trainingSet, validationSet, params, classifierAlgorithm, interp = 0) {
   library(pls)
   library(e1071)

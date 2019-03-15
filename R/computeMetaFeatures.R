@@ -1,11 +1,20 @@
-#' @title Meta-Features Computation
-#' @description Perform several calculations on dataset to compute its meta features
-#' @param dataset dataset for which we will compute the meta features
-#' @keywords AutoML, SMAC
-#' @seealso \code{\link[utils]{head}}
-#' @return dataFrame with meat-features
-#' @examples \dontrun{ computeMetaFeatures(trainingSet)
-#' }
+#' @title Compute Meta-Features.
+#'
+#' @description Compute Statistical Meta-Features for a dataset.
+#'
+#' @param dataset The dataframe containing the dataset to process.
+#' @param maxTime The maximum time budget entered by user for the parameter optimization part (in minutes).
+#' @param featureTypes Vector of Types of each feature in the dataset either ('numerical', 'categorical').
+#'
+#' @return dataframe with 25 statistical meta-feature of \code{dataset}.
+#'
+#' @examples
+#' computeMetaFeatures(data.frame(salary = c(623, 515, 611, 729, 843), class = c (0, 0, 0, 1, 1)),  10, c('numerical', 'numerical')).
+#'
+#' @noRd
+#'
+#' @keywords internal
+
 computeMetaFeatures <- function(dataset, maxTime, featureTypes) {
   library(e1071)
   print('###################Preparation of Meta-Features of the Dataset###################')

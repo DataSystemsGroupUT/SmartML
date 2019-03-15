@@ -1,11 +1,23 @@
-#' @title readDataset
-#' @description read Dataset in a certain directory and divide it into training and validation
-#' @param directory the path to the dataset
-#' @keywords AutoML, SMAC
-#' @seealso \code{\link[utils]{head}}
-#' @return Training Section and Validation Section
-#' @examples \dontrun{ readDataset(directory)
-#' }
+#' @title Read Dataset File into Memory.
+#'
+#' @description Read the file of the dataset, and split it into training and validation sets.
+#'
+#' @param directory String of the directory to the file containing the dataset.
+#' @param vRatio The split ratio of the dataset file into training, and validation sets default(10% Validation - 90% Training).
+#' @param selectedFeats Vector of numbers of features to select from the dataset and ignore the rest of columns - empty vector means all features.
+#' @param classCol String of the class column of the dataset.
+#' @param preProcessF String of the preprocessing algorithm to apply.
+#' @param featuresToPreProcess Vector of numbers of features columns to perform preprocessing - empty vector means all features.
+#' @param nComp Number of components needed if either "pca" or "ica" feature preprocessors are needed.
+#'
+#' @return List of the Training and Validation Sets splits.
+#'
+#' @examples readDataset('/Datasets/iris.csv', 0.1, c(), 'class', 'pca', c(), 2)
+#'
+#' @noRd
+#'
+#' @keywords internal
+
 readDataset <- function(directory, vRatio = 0.1, selectedFeats, classCol, preProcessF, featuresToPreProcess, nComp) {
   library(RWeka)
   library(farff)

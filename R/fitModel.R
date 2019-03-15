@@ -1,16 +1,24 @@
-#' @title Fitting SMAC Model based on current best parameters
-#' @description Fit the regression tree of SMAC model on dataset
-#' @param params parameters to run the classifier with
-#' @param bestPerf performance of best parameters on forest trees' folds
-#' @param trainingSet Training section of the dataset
-#' @param validationSet validation section of the dataset
-#' @param classifierAlgorithm type of classifier algorithm that will be used
-#' @param tree SMAC random Forest model
-#' @keywords AutoML, SMAC
-#' @seealso \code{\link[utils]{head}}
-#' @return parameters with corresponding performance
-#' @examples \dontrun{ fitModel(params, trainingSet, validationSet, tree)
-#' }
+#' @title Fit SMAC Model.
+#'
+#' @description Fit the trees of the SMAC forest model by adding new nodes to each of the forest trees.
+#'
+#' @param params A string of parameter configuration values for the current classifier to be tuned (parameters are separated by #).
+#' @param bestPerf Vector of performance values of the best parameter configuration on the folds of the SMAC model.
+#' @param trainingSet Dataframe of the training set.
+#' @param validationSet Dataframe of the validation Set.
+#' @param foldedSet List of the folds of the dataset in each tree of the SMAC forest.
+#' @param classifierAlgorithm String of the name of classifier algorithm used now.
+#' @param tree List of data frames, representing the data structure for the forest of trees of the SMAC model.
+#' @param B number of trees in the forest of trees of SMAC optimization algorithm (default = 10).
+#'
+#' @return List of: \code{t} trees of fitted SMAC Model - \code{p} performance of current parameter configuration on whole dataset - \code{bp} Current added parameter configuration.
+#'
+#' @examples fitModel('1', c(0.91, 0.89), data.frame(salary = c(623, 515, 611, 729, 843), class = c (0, 0, 0, 1, 1)), data.frame(salary = c(400, 800), class = c (0, 1)), list(c(1,2,4), c(3,5)), 'knn', data.frame(fold = c(), parent = c(), params = c(), leftChild = c(), rightChild = c(), performance = c(), rowN = c()), 2).
+#'
+#' @noRd
+#'
+#' @keywords internal
+
 fitModel <- function(params, bestPerf, trainingSet, validationSet, foldedSet, classifierAlgorithm, tree, B = 10) {
   #fit SMAC model using the current best parameters
   #get current best parameters

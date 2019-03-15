@@ -1,23 +1,32 @@
-#' @title featurePreProcessing
-#' @description perform feature preprocessing
-#' @param directory the path to the dataset
-#' @keywords AutoML, SMAC
-#' @seealso \code{\link[utils]{head}}
-#' @return dataset after performing feature preprocessing
-#' @examples \dontrun{ featurePreProcessing(data, preProcess, featuresToPreProcess)
-#' }
+#' @title Perform Feature Preprocessing if specified by user.
+#'
+#' @description Perform a preprocessing algorithm on the dataset and return the preprocessed one.
+#'
+#' @param dataset Data frame containing the dataset to process.
+#' @param preProcessF string containing the name of the preprocessing algorithm:
+#' "boxcox": apply a Box–Cox transform and values must be non-zero and positive in all features,
+#' "yeo-Johnson": apply a Yeo-Johnson transform, like a BoxCox, but values can be negative,
+#' "zv": remove attributes with a zero variance (all the same value),
+#' "center": subtract mean from values,
+#' "scale": divide values by standard deviation,
+#' "standardize": perform both centering and scaling,
+#' "normalize": normalize values,
+#' "pca": transform data to the principal components,
+#' "ica": transform data to the independent components.
+#' @param nComp Number of components needed if either "pca" or "ica" feature preprocessors are needed.
+#'
+#' @return Data frame of the preprocessed dataset.
+#'
+#' @examples featurePreProcessing(data.frame(salary = c(623, 515, 611, 729, 843), class = c (0, 0, 0, 1, 1)), "center", 0).
+#'
+#' @noRd
+#'
+#' @keywords internal
+
 featurePreProcessing <- function(data, preProcessF, nComp) {
   library(caret)
   library(mlbench)
   library(fastICA)
-  #“BoxCox“: apply a Box–Cox transform, values must be non-zero and positive.
-  #“YeoJohnson“: apply a Yeo-Johnson transform, like a BoxCox, but values can be negative.
-  #“zv“: remove attributes with a zero variance (all the same value).
-  #“center“: subtract mean from values.
-  #“scale“: divide values by standard deviation.
-  #“range“: normalize values.
-  #“pca“: transform data to the principal components.
-  #“ica“: transform data to the independent components.
 
   if(preProcessF == 'scale'){
     preprocessParams <- preProcess(data, method=c("scale"))
@@ -60,9 +69,9 @@ featurePreProcessing <- function(data, preProcessF, nComp) {
     data <- predict(preprocessParams, data)
   }
   else{
-    print('Error: Not defined Preprocessing Algorithm...Skip feature preprocessing part!')
+    print('Error: No defined Preprocessing Algorithm...Skip feature preprocessing part!')
   }
-  print('PreProcessing Summary: ')
+  print('Summary After PreProcessing: ')
   print(summary(data))
   return (data)
 }
