@@ -1,10 +1,30 @@
-#' @title
+#' @title Run smartML function for automatic Machine Learning.
 #'
-#' @description
+#' @description Run the smartML main function for automatic classifier algorithm selection, and hyper-parameter tuning.
 #'
-#' @param
+#' @param maxTime Float of the maximum time budget for hyper-parameter tuning process in minutes.
+#' @param directory String of the training dataset directory (SmartML accepts file formats arff/(csv with columns headers) ).
+#' @param classCol String of the name of the class label column in the dataset (default = 'class').
+#' @param selectedFeats Vector of numbers of features columns to include from the training set and ignore the rest of columns - In case of empty vector, this means to include all features in the dataset file (default = c()).
+#' @param vRatio Float of the validation set ratio that should be splitted out of the training set for the evaluation process (default = 0.1 --> 10%).
+#' @param preProcessF string containing the name of the preprocessing algorithm (default = 'N' --> no preprocessing):
+#' "boxcox": apply a Box–Cox transform and values must be non-zero and positive in all features,
+#' "yeo-Johnson": apply a Yeo-Johnson transform, like a BoxCox, but values can be negative,
+#' "zv": remove attributes with a zero variance (all the same value),
+#' "center": subtract mean from values,
+#' "scale": divide values by standard deviation,
+#' "standardize": perform both centering and scaling,
+#' "normalize": normalize values,
+#' "pca": transform data to the principal components,
+#' "ica": transform data to the independent components.
+#' @param featuresToPreProcess Vector of number of features to perform the feature preprocessing on - In case of empty vector, this means to include all features in the dataset file (default = c()).
+#' @param nComp Integer of Number of components needed if either "pca" or "ica" feature preprocessors are needed.
+#' @param nModels Integer representing the number of best classifier algorithms that you want the tool to output.
+#' @param options Integer representing either Classifier Algorithm Selection is needed only = 1 or Algorithm selection with its parameter tuning is required = 2 which is the default value.
+#' @param featureTypes Vector of either 'numerical' or 'categorical' representing the types of features in the dataset (default = c() --> any factor or character features will be considered as categorical otherwise numerical).
+#' @param interp Boolean representing if model interpretability (Feature Importance and Interaction) is needed or not (default = 0 --> No) This option will take more time budget if set to 1.
 #'
-#' @return
+#' @return List of Choosen parameter configurations for the \code{nModels} classifiers.
 #'
 #' @examples
 #'

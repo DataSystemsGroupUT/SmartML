@@ -13,7 +13,7 @@
 #' "normalize": normalize values,
 #' "pca": transform data to the principal components,
 #' "ica": transform data to the independent components.
-#' @param nComp Number of components needed if either "pca" or "ica" feature preprocessors are needed.
+#' @param nComp Integer of Number of components needed if either "pca" or "ica" feature preprocessors are needed.
 #'
 #' @return Data frame of the preprocessed dataset.
 #'
