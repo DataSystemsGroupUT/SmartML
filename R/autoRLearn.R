@@ -19,7 +19,7 @@
 #' "ica": transform data to the independent components.
 #' @param featuresToPreProcess Vector of number of features to perform the feature preprocessing on - In case of empty vector, this means to include all features in the dataset file (default = c()) - This vector should be a subset of \code{selectedFeats}.
 #' @param nComp Integer of Number of components needed if either "pca" or "ica" feature preprocessors are needed.
-#' @param nModels Integer representing the number of best classifier algorithms that you want the tool to output.
+#' @param nModels Integer representing the number of classifier algorithms that you want to select based on Meta-Learning and start to tune using Bayesian Optimization (default = 3).
 #' @param options Integer representing either Classifier Algorithm Selection is needed only = 1 or Algorithm selection with its parameter tuning is required = 2 which is the default value.
 #' @param featureTypes Vector of either 'numerical' or 'categorical' representing the types of features in the dataset (default = c() --> any factor or character features will be considered as categorical otherwise numerical).
 #' @param interp Boolean representing if model interpretability (Feature Importance and Interaction) is needed or not (default = 0) This option will take more time budget if set to 1.
@@ -32,14 +32,15 @@
 #' autoRLearn(10, '../sampleDatasets/car/train.arff')
 #' autoRLearn(60, '../sampleDatasets/satImage/train.arff', classCol = 'label', nModels = 5)
 #' autoRLearn(30, '../sampleDatasets/EEGEyeState/train.csv', preProcessF = 'standardize')
-#' autoRLearn(25, '../sampleDatasets/shuttle/train.arff', preProcessF = 'pca', nComp = 2, nModels = 1)
+#' autoRLearn(25, '../sampleDatasets/shuttle/train.arff', preProcessF = 'pca', nComp = 2, nModels = 3)
 #' autoRLearn(1, '../sampleDatasets/waveform/train.arff', options = 1)
 #' autoRLearn(120, '../sampleDatasets/churn/train.arff', preProcessF = 'center', featuresToPreProcess = c(1,2,3,4), vRatio = 0.2)
 #'
 #' @export
 
-autoRLearn <- function(maxTime, directory, classCol = 'class', selectedFeats = c(), vRatio = 0.1, preProcessF = 'N', featuresToPreProcess = c(), nComp = NA, nModels = 3, option = 2, featureTypes = c(), interp = 0, missingVal = C('NA', '?', ' '), missingOpr = 0) {
+autoRLearn <- function(maxTime, directory, classCol = 'class', selectedFeats = c(), vRatio = 0.1, preProcessF = 'N', featuresToPreProcess = c(), nComp = NA, nModels = 4, option = 2, featureTypes = c(), interp = 0, missingVal = C('NA', '?', ' '), missingOpr = 0) {
   library(tictoc)
+
   #Read Dataset
   datasetReadError <- try(
   {
@@ -47,123 +48,118 @@ autoRLearn <- function(maxTime, directory, classCol = 'class', selectedFeats = c
     trainingSet <- dataset$TD
   })
   if(inherits(datasetReadError, "try-error")){
-    print('Failed Reading Dataset: Makesure that dataset directory is correct and it is a valid csv/arff file.')
-    return(0)
+    print('Failed Reading Dataset: Make sure that dataset directory is correct and it is a valid csv/arff file.')
+    return(-1)
   }
 
-  #Calculate Meta-Features for the dataset
-  tic(quiet = TRUE)
-  metaFeatures <- computeMetaFeatures(trainingSet, maxTime, featureTypes)
+  tryCatch({
+    nClassifiers <- 15
+    res <- withTimeout({
 
-  #Convert Categorical to Numerical
-  dataset <- convertCategorical(dataset)
-  validationSet <- dataset$VD
-  trainingSet <- dataset$TD
-  foldedSet <- dataset$FD
-  t <- toc(quiet = TRUE)
-  #cat(sprintf("Time taken to extract Meta-Features %f\n", (t$toc-t$tic) ))
+      #Calculate Meta-Features for the dataset
+      metaFeatures <- computeMetaFeatures(trainingSet, maxTime, featureTypes)
 
-  #Generate candidate classifiers
-  output <- getCandidateClassifiers(maxTime, metaFeatures, nModels)
-  #return()
-  algorithms <- output$c
-  tRatio <- output$r
-  algorithmsParams <- output$p
-  #separator between models output
-  separator <- '<hr/>'
-  out <- c()
-  #variables to hold best classifiers
-  bestAlgorithm <- ''
-  bestAlgorithmPerf <- 0
-  bestAlgorithmParams <- list()
-  #Only Candidate Classifiers
-  if(option == 1){
-    for(i in 1:length(algorithms)){
-      classifierAlgorithm <- algorithms[i]
-      cat('classifier Now: ', classifierAlgorithm, '\n')
-      classifierConf <- getClassifierConf(classifierAlgorithm)
-      classifierAlgorithmParams <- outClassifierConf(classifierAlgorithm, classifierConf, algorithmsParams[i])
-      out <- paste(out, '<h4>Model(', as.character(i), '): <b>', classifierAlgorithm, '</h4><br/> Configuration: </b>', classifierAlgorithmParams, '<br/>', separator, '  <br/><br/>', collapse='')
-    }
-    return(out)
-  }
-  #loop over each classifier
-  for(i in 1:length(algorithms)){
-    classifierAlgorithm <- algorithms[i]
-    classifierAlgorithmParams <- algorithmsParams[i]
-    #Exception for deep Boost requires binary classes dataset
-    if(classifierAlgorithm == 'deepboost' && metaFeatures$nClasses > 2)
-      next
-    #Read maxTime for the current classifier algorithm
-    maxTime <- tRatio[i]
-    #classifierAlgorithm <- 'svm'
-    #Read the current classifier default parameter configuration
-    classifierConf <- getClassifierConf(classifierAlgorithm)
-    cat('\n\nClassifier Algorithm: ', classifierAlgorithm, '\n')
-    #initialize step
-    print('INITIALLIZE: ')
-    #classifierAlgorithmParams <- 'linear#NA#-2#-13.3387946894724#NA'
-    R <- initialize(classifierAlgorithm, trainingSet, validationSet, classifierConf, classifierAlgorithmParams)
-    cntParams <- subset(R, select = -performance)
-    #start hyperParameter tuning till maximum Time
-    tic(quiet = TRUE)
-    maxTime <- maxTime * 60
-    timeTillNow <- 0
-    #Regression Random Forest Trees for training set folds
-    tree <- data.frame(fold=integer(), parent=integer(), params=character(), rightChild=integer(), leftChild=integer(), performance=double(), rowN = integer())
-    bestParams <- cntParams
-    bestPerf <- c()
-    counter1 <- 1
-    classifierFailureCounter <- 0
+      #Convert Categorical Features to Numerical Ones and split the dataset
+      dataset <- convertCategorical(dataset)
+      validationSet <- dataset$VD #Validation set
+      trainingSet <- dataset$TD #Training Set
+      foldedSet <- dataset$FD #Folded sets of Training Data.
 
-    repeat{
-      #Fit Model
-      print('FIT SMAC MODEL: ')
-      output <- fitModel(bestParams, bestPerf, trainingSet, validationSet, foldedSet, classifierAlgorithm, tree)
-      #Check if this classifer failed for more than 5 times, skip to the next classifier
-      #cat("best performance: ", bestPerf, length(bestPerf), ' %%%%%%%%%%%%%%%%%%%%%%%%\n')
-      if(length(bestPerf) > 0 && mean(bestPerf) == 0){
-        classifierFailureCounter <- classifierFailureCounter + 1
-        if(classifierFailureCounter > 5) break
+      #Generate candidate classifiers
+      output <- getCandidateClassifiers(maxTime, metaFeatures, min(c(nModels, nClassifiers)) )
+      algorithms <- output$c #Classifier Algorithm names selected.
+      tRatio <- output$r #Time ratio between all classifiers.
+      algorithmsParams <- output$p #Initial Parameter configuration of each classifier.
+
+      #variables to hold best classifiers
+      bestAlgorithm <- '' #bestClassifierName.
+      bestAlgorithmPerf <- 0 #bestClassifierPerformance.
+      bestAlgorithmParams <- list() #Parameters of best Classifier.
+
+      #Option 1: Only Candidate Classifiers with initial parameters will be resulted (No Hyper-parameter tuning)
+      if(option == 1){
+        return (list(Clfs = algorithms, params = algorithmsParams))
       }
 
-      tree <- output$t
-      bestPerf <- output$p
-      bestParams <- output$bp
-      #Select Candidate Classifier Configurations
-      print('GET CANDIDATE CONFIGURATIONS: ')
-      candidateConfs <- selectConfiguration(R, classifierAlgorithm, tree, bestParams)
-      #Intensify
-      print('INTENSIFY: ')
-      if(nrow(candidateConfs) > 0){
-        print(timeTillNow)
-        output <- intensify(R, bestParams, bestPerf, candidateConfs, foldedSet, trainingSet, validationSet, classifierAlgorithm, maxTime, timeTillNow)
-        bestParams <- output$params
-        bestPerf <- output$perf
-        timeTillNow <- output$timeTillNow
-        R <- output$r
-      }
-      #Check if execution time exceeded the allowed time or not
-      t <- toc(quiet = TRUE)
-      timeTillNow <- timeTillNow + t$toc - t$tic
-      tic(quiet = TRUE)
-      if(timeTillNow > maxTime){
-        if(mean(bestPerf) > mean(bestAlgorithmPerf)){
-          cat('cnt perf: ', bestPerf, '\n')
-          cat('best perf: ', bestAlgorithmPerf, '\n')
-          bestAlgorithmPerf <- bestPerf
-          bestAlgorithm <- classifierAlgorithm
-          bestAlgorithmParams <- bestParams
-        }
-        #Here we should add results from all models
-        perf <- runClassifier(trainingSet = trainingSet, validationSet = validationSet, params = bestParams[,names(bestParams) != "EI" & names(bestParams) != "performance"], classifierAlgorithm = classifierAlgorithm)
+      #Option 2: Classifier Algorithm Selection + Parameter Tuning
+      #loop over each classifier
+      for(i in 1:length(algorithms)){
+        classifierAlgorithm <- algorithms[i]
+        classifierAlgorithmParams <- algorithmsParams[i]
+
+        #Exception for deep Boost requires binary classes dataset
+        if(classifierAlgorithm == 'deepboost' && metaFeatures$nClasses > 2)
+          next
+        #Read maxTime for the current classifier algorithm
+        maxTime <- tRatio[i]
+
+        #Read the current classifier default parameter configuration
         classifierConf <- getClassifierConf(classifierAlgorithm)
-        classifierAlgorithmParams <- outClassifierConf(classifierAlgorithm, classifierConf, sprintf("'%s'", paste( unlist(bestParams[,names(bestParams) != "EI" & names(bestParams) != "performance"]), collapse='#')))
-        out <- paste(out, '<h4>Model(', as.character(i), '): <b>', classifierAlgorithm, '</h4><br/>Validation Accuracy: </b>', as.character(perf*100), '%<br/><b>Configuration: </b>', classifierAlgorithmParams, '<br/>', separator, '  <br/><br/>', collapse='')
-        break
+        cat('\n\nStart Tuning Classifier Algorithm: ', classifierAlgorithm, '\n')
+        #initialize step
+        print('INITIALLIZE: ')
+        R <- initialize(classifierAlgorithm, trainingSet, validationSet, classifierConf, classifierAlgorithmParams)
+        cntParams <- subset(R, select = -performance)
+        #start hyperParameter tuning till maximum Time
+        tic(quiet = TRUE)
+        maxTime <- maxTime * 60
+        timeTillNow <- 0
+        #Regression Random Forest Trees for training set folds
+        tree <- data.frame(fold=integer(), parent=integer(), params=character(), rightChild=integer(), leftChild=integer(), performance=double(), rowN = integer())
+        bestParams <- cntParams
+        bestPerf <- c()
+        counter1 <- 1
+        classifierFailureCounter <- 0
+
+        repeat{
+          #Fit Model
+          print('FIT SMAC MODEL: ')
+          output <- fitModel(bestParams, bestPerf, trainingSet, validationSet, foldedSet, classifierAlgorithm, tree)
+          #Check if this classifer failed for more than 5 times, skip to the next classifier
+          if(length(bestPerf) > 0 && mean(bestPerf) == 0){
+            classifierFailureCounter <- classifierFailureCounter + 1
+            if(classifierFailureCounter > 5) break
+          }
+
+          tree <- output$t
+          bestPerf <- output$p
+          bestParams <- output$bp
+          #Select Candidate Classifier Configurations
+          candidateConfs <- selectConfiguration(R, classifierAlgorithm, tree, bestParams)
+          #Intensify
+          if(nrow(candidateConfs) > 0){
+            print(timeTillNow)
+            output <- intensify(R, bestParams, bestPerf, candidateConfs, foldedSet, trainingSet, validationSet, classifierAlgorithm, maxTime, timeTillNow)
+            bestParams <- output$params
+            bestPerf <- output$perf
+            timeTillNow <- output$timeTillNow
+            R <- output$r
+          }
+          #Check if execution time exceeded the allowed time or not
+          t <- toc(quiet = TRUE)
+          timeTillNow <- timeTillNow + t$toc - t$tic
+          tic(quiet = TRUE)
+          if(timeTillNow > maxTime){
+            if(mean(bestPerf) > mean(bestAlgorithmPerf)){
+              cat('cnt perf: ', bestPerf, '\n')
+              cat('best perf: ', bestAlgorithmPerf, '\n')
+              bestAlgorithmPerf <- bestPerf
+              bestAlgorithm <- classifierAlgorithm
+              bestAlgorithmParams <- bestParams
+            }
+            #Here we should add results from all models
+            perf <- runClassifier(trainingSet = trainingSet, validationSet = validationSet, params = bestParams[,names(bestParams) != "EI" & names(bestParams) != "performance"], classifierAlgorithm = classifierAlgorithm)
+            classifierConf <- getClassifierConf(classifierAlgorithm)
+            break
+          }
+        }
       }
-    }
-  }
+
+    }, timeout = maxTime * 60)
+  }, TimeoutException = function(ex) {
+    message("Time Budget Allowed Vanished.")
+  })
+
   cat('\n\n\n\n %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n')
   print('Best Classifier Algorithm')
   print(bestAlgorithm)
@@ -194,6 +190,6 @@ autoRLearn <- function(maxTime, directory, classCol = 'class', selectedFeats = c
 
   if(checkInternet() == TRUE){
     print("SEND TO DATABASE")
-    sendToDatabase()
+    #sendToDatabase()
   }
 }

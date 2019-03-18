@@ -12,11 +12,11 @@
 #'
 #' @keywords internal
 
-getCandidateClassifiers <- function(maxTime=10, metaFeatures, nModels = 3) {
+getCandidateClassifiers <- function(maxTime=10, metaFeatures, nModels) {
   library(RMySQL)
   library(BBmisc)
-  classifiers <- c('svm', 'naiveBayes','knn', 'bagging', 'part', 'j48', 'randomForest', 'fda', 'c50', 'rpart', 'lda', 'lmt', 'rda', 'neuralnet', 'deepboost', 'plsda')
-  classifiersWt <- c(21, 10, 5, 25, 11, 11, 10, 13, 20, 6, 5, 10, 5, 21, 6)
+  classifiers <- c('randomForest', 'c50', 'j48', 'deepboost', 'svm', 'naiveBayes','knn', 'bagging', 'neuralnet', 'plsda', 'part', 'fda', 'rpart', 'lda', 'lmt', 'rda')
+  classifiersWt <- c(10, 13, 11, 21, 21, 10, 5, 25, 5, 6, 11, 20, 6, 5, 10)
   qOut <- dbSendQuery(mydb, "select * from metafeatures")
   metaData <- fetch(qOut, n=-1)
   dbDisconnect(mydb)

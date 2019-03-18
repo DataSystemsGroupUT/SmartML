@@ -6,7 +6,7 @@
 #' @param validationSet Dataframe of the validation Set.
 #' @param params A string of parameter configuration values for the current classifier to be tuned (parameters are separated by #).
 #' @param classifierAlgorithm String of the name of classifier algorithm used now.
-#' @param interp Boolean representing if interpretability is required or not.
+#' @param interp Boolean representing if interpretability is required or not (Default = 0).
 #'
 #' @return
 #'
