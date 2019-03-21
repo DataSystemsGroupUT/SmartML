@@ -17,7 +17,7 @@
 outClassifierConf <- function(classifierName, result, initParams) {
   #get list of Classifier Parameters names
   params <- result$params
-  #get list of GrandParent parametes (Root parameters)
+  #get list of GrandParent parameters
   gparams <- result$parents
   #Create dataFrame for classifier default parameters
   defaultParams <- data.frame(matrix(ncol = length(params), nrow = 1))

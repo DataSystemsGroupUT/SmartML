@@ -2,21 +2,23 @@
 #'
 #' @description Run the smartML main function for automatic classifier algorithm selection, and hyper-parameter tuning.
 #'
-#' @param maxTime Float of the maximum time budget for reading dataset, preprocessing, calculating meta-features, Algorithm Selection & hyper-parameter tuning process only in minutes(Excluding Model Interpretability).
+#' @param maxTime Float of the maximum time budget for reading dataset, preprocessing, calculating meta-features, Algorithm Selection & hyper-parameter tuning process only in minutes(Excluding Model Interpretability) - This is applicable in case of Option = 2 only.
 #' @param directory String of the training dataset directory (SmartML accepts file formats arff/(csv with columns headers) ).
 #' @param classCol String of the name of the class label column in the dataset (default = 'class').
 #' @param selectedFeats Vector of numbers of features columns to include from the training set and ignore the rest of columns - In case of empty vector, this means to include all features in the dataset file (default = c()).
-#' @param vRatio Float of the validation set ratio that should be splitted out of the training set for the evaluation process (default = 0.1 --> 10%).
+#' @param vRatio Float of the validation set ratio that should be splitted out of the training set for the evaluation process (default = 0.1 --> 10\%).
 #' @param preProcessF string containing the name of the preprocessing algorithm (default = 'N' --> no preprocessing):
-#' "boxcox": apply a Box–Cox transform and values must be non-zero and positive in all features,
-#' "yeo-Johnson": apply a Yeo-Johnson transform, like a BoxCox, but values can be negative,
-#' "zv": remove attributes with a zero variance (all the same value),
-#' "center": subtract mean from values,
-#' "scale": divide values by standard deviation,
-#' "standardize": perform both centering and scaling,
-#' "normalize": normalize values,
-#' "pca": transform data to the principal components,
-#' "ica": transform data to the independent components.
+#' \itemize{
+#' \item "boxcox" - apply a Box–Cox transform and values must be non-zero and positive in all features,
+#' \item "yeo-Johnson" - apply a Yeo-Johnson transform, like a BoxCox, but values can be negative,
+#' \item "zv" - remove attributes with a zero variance (all the same value),
+#' \item "center" - subtract mean from values,
+#' \item "scale" - divide values by standard deviation,
+#' \item "standardize" - perform both centering and scaling,
+#' \item "normalize" - normalize values,
+#' \item "pca" - transform data to the principal components,
+#' \item "ica" - transform data to the independent components.
+#' }
 #' @param featuresToPreProcess Vector of number of features to perform the feature preprocessing on - In case of empty vector, this means to include all features in the dataset file (default = c()) - This vector should be a subset of \code{selectedFeats}.
 #' @param nComp Integer of Number of components needed if either "pca" or "ica" feature preprocessors are needed.
 #' @param nModels Integer representing the number of classifier algorithms that you want to select based on Meta-Learning and start to tune using Bayesian Optimization (default = 3).
@@ -26,20 +28,15 @@
 #' @param missingValues Vector of strings representing the missing values in dataset (default: c('NA', '?', ' ')).
 #' @param missingOpr Boolean variable represents either delete instances with missing values or apply imputation using "MICE" library which helps you imputing missing values with plausible data values that are drawn from a distribution specifically designed for each missing datapoint- (default = 0 --> delete instances).
 #'
-#' @return List of Choosen parameter configurations for the \code{nModels} classifiers.
+#' @return List of Choosen Classifier Algorithms Names with their parameter configurations for the \code{nModels} classifiers, and performance on Validation Sets if Option 2 is selected.
 #'
-#' @examples
-#' autoRLearn(10, '../sampleDatasets/car/train.arff')
-#' autoRLearn(60, '../sampleDatasets/satImage/train.arff', classCol = 'label', nModels = 5)
-#' autoRLearn(30, '../sampleDatasets/EEGEyeState/train.csv', preProcessF = 'standardize')
-#' autoRLearn(25, '../sampleDatasets/shuttle/train.arff', preProcessF = 'pca', nComp = 2, nModels = 3)
-#' autoRLearn(1, '../sampleDatasets/waveform/train.arff', options = 1)
-#' autoRLearn(120, '../sampleDatasets/churn/train.arff', preProcessF = 'center', featuresToPreProcess = c(1,2,3,4), vRatio = 0.2)
+#' @example
 #'
-#' @export
+#' @import tictoc
+#'
+#' @export autoRLearn
 
 autoRLearn <- function(maxTime, directory, classCol = 'class', selectedFeats = c(), vRatio = 0.1, preProcessF = 'N', featuresToPreProcess = c(), nComp = NA, nModels = 4, option = 2, featureTypes = c(), interp = 0, missingVal = C('NA', '?', ' '), missingOpr = 0) {
-  library(tictoc)
 
   #Read Dataset
   datasetReadError <- try(
@@ -52,10 +49,15 @@ autoRLearn <- function(maxTime, directory, classCol = 'class', selectedFeats = c
     return(-1)
   }
 
+  #Option 1: Only Candidate Classifiers with initial parameters will be resulted (No Hyper-parameter tuning)
+  if(option == 1){
+    return (list(Clfs = algorithms, params = algorithmsParams))
+  }
+
+  #Option 2: Classifier Algorithm Selection + Parameter Tuning
   tryCatch({
     nClassifiers <- 15
     res <- withTimeout({
-
       #Calculate Meta-Features for the dataset
       metaFeatures <- computeMetaFeatures(trainingSet, maxTime, featureTypes)
 
@@ -76,33 +78,22 @@ autoRLearn <- function(maxTime, directory, classCol = 'class', selectedFeats = c
       bestAlgorithmPerf <- 0 #bestClassifierPerformance.
       bestAlgorithmParams <- list() #Parameters of best Classifier.
 
-      #Option 1: Only Candidate Classifiers with initial parameters will be resulted (No Hyper-parameter tuning)
-      if(option == 1){
-        return (list(Clfs = algorithms, params = algorithmsParams))
-      }
-
-      #Option 2: Classifier Algorithm Selection + Parameter Tuning
       #loop over each classifier
       for(i in 1:length(algorithms)){
         classifierAlgorithm <- algorithms[i]
         classifierAlgorithmParams <- algorithmsParams[i]
 
-        #Exception for deep Boost requires binary classes dataset
-        if(classifierAlgorithm == 'deepboost' && metaFeatures$nClasses > 2)
-          next
         #Read maxTime for the current classifier algorithm
-        maxTime <- tRatio[i]
+        maxClfTime <- tRatio[i]
 
         #Read the current classifier default parameter configuration
         classifierConf <- getClassifierConf(classifierAlgorithm)
         cat('\n\nStart Tuning Classifier Algorithm: ', classifierAlgorithm, '\n')
         #initialize step
-        print('INITIALLIZE: ')
         R <- initialize(classifierAlgorithm, trainingSet, validationSet, classifierConf, classifierAlgorithmParams)
         cntParams <- subset(R, select = -performance)
         #start hyperParameter tuning till maximum Time
         tic(quiet = TRUE)
-        maxTime <- maxTime * 60
         timeTillNow <- 0
         #Regression Random Forest Trees for training set folds
         tree <- data.frame(fold=integer(), parent=integer(), params=character(), rightChild=integer(), leftChild=integer(), performance=double(), rowN = integer())
@@ -115,6 +106,7 @@ autoRLearn <- function(maxTime, directory, classCol = 'class', selectedFeats = c
           #Fit Model
           print('FIT SMAC MODEL: ')
           output <- fitModel(bestParams, bestPerf, trainingSet, validationSet, foldedSet, classifierAlgorithm, tree)
+
           #Check if this classifer failed for more than 5 times, skip to the next classifier
           if(length(bestPerf) > 0 && mean(bestPerf) == 0){
             classifierFailureCounter <- classifierFailureCounter + 1
@@ -129,7 +121,7 @@ autoRLearn <- function(maxTime, directory, classCol = 'class', selectedFeats = c
           #Intensify
           if(nrow(candidateConfs) > 0){
             print(timeTillNow)
-            output <- intensify(R, bestParams, bestPerf, candidateConfs, foldedSet, trainingSet, validationSet, classifierAlgorithm, maxTime, timeTillNow)
+            output <- intensify(R, bestParams, bestPerf, candidateConfs, foldedSet, trainingSet, validationSet, classifierAlgorithm, maxClfTime, timeTillNow)
             bestParams <- output$params
             bestPerf <- output$perf
             timeTillNow <- output$timeTillNow
@@ -139,10 +131,9 @@ autoRLearn <- function(maxTime, directory, classCol = 'class', selectedFeats = c
           t <- toc(quiet = TRUE)
           timeTillNow <- timeTillNow + t$toc - t$tic
           tic(quiet = TRUE)
-          if(timeTillNow > maxTime){
+          if(timeTillNow > maxClfTime){
             if(mean(bestPerf) > mean(bestAlgorithmPerf)){
-              cat('cnt perf: ', bestPerf, '\n')
-              cat('best perf: ', bestAlgorithmPerf, '\n')
+              cat('current best performance: ', bestPerf, '\n')
               bestAlgorithmPerf <- bestPerf
               bestAlgorithm <- classifierAlgorithm
               bestAlgorithmParams <- bestParams

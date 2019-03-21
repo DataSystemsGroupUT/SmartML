@@ -24,9 +24,9 @@
 #' @keywords internal
 
 featurePreProcessing <- function(data, preProcessF, nComp) {
-  library(caret)
-  library(mlbench)
-  library(fastICA)
+  #library(caret)
+  #library(mlbench)
+  #library(fastICA)
 
   if(preProcessF == 'scale'){
     preprocessParams <- preProcess(data, method=c("scale"))

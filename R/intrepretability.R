@@ -14,8 +14,8 @@
 #' @keywords internal
 
 interpret <- function(model, x){
-  library(ggplot2)
-  library("iml")
+  #library(ggplot2)
+  #library("iml")
   clas = as.factor(x$class)
   X = x[which(names(x) != "class")]
   X[] <- lapply(X, function(x) {

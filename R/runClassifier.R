@@ -12,28 +12,25 @@
 #'
 #' @examples
 #'
-#' @noRd
+#' @import pls
+#' @import e1071
+#' @import randomForest
+#' @import FNN
+#' @import ipred
+#' @import RWeka
+#' @import C50
+#' @import rpart
+#' @import MASS
+#' @import caret
+#' @import stats
+#' @import mda
+#' @import nnet
+#' @import deepboost
 #'
-#' @keywords internal
+#' @export runClassifier
 
 runClassifier <- function(trainingSet, validationSet, params, classifierAlgorithm, interp = 0) {
-  library(pls)
-  library(e1071)
-  library(randomForest)
-  library(FNN)
-  library(klaR)
-  library(rpart)
-  library(ipred)
-  library(RWeka)
-  library(C50)
-  library(rpart)
-  library(MASS)
-  library(klaR)
-  library(caret)
-  library(stats)
-  library(mda)
-  library(nnet)
-  library(deepboost)
+
   #training set features and classes
   xFeatures <- subset(trainingSet, select = -class)
   xClass <- c(subset(trainingSet, select = class)$'class')

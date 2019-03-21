@@ -12,9 +12,9 @@
 #' @keywords internal
 
 checkInternet <- function() {
+  #library(RCurl)
   out <- FALSE
   tryCatch({
-    library(RCurl)
     out <- is.character(getURL("www.yahoo.com"))
   },
   error = function(e) {

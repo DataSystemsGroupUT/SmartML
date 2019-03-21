@@ -13,7 +13,7 @@
 #' @keywords internal
 
 getClassifierConf <- function(classifierName) {
-  library("rjson")
+  #library("rjson")
   #Open the Classifier Parameters Configuration File
   classifierConfDir <- paste('./classifiersData/', classifierName,'.json',sep="")
   result <- fromJSON(file = classifierConfDir)

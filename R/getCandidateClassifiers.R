@@ -1,20 +1,22 @@
-#' @title
+#' @title Get candidate Good Classifier Algorithms.
 #'
-#' @description
+#' @description Compare Dataset Meta-Features with the Knowledge base to recommend good Classifier Algorithms based on nearest neighbor datasets with outperformaing pipelines.
 #'
-#' @param
+#' @param maxTime Float of the maximum time budget allowed.
+#' @param metaFeatures List of the meta-features collected from the dataset.
+#' @param nModels Integer of number of required number of recommendations of classifier algorithms to get.
 #'
-#' @return
+#' @return List of recommended classifier algorithms, their initial parameter configurations, and time ratio to be spent in tuning each classifier.
 #'
-#' @examples
+#' @examples getCandidateClassifiers(10, \code{metaFeatures}, 3)
 #'
 #' @noRd
 #'
 #' @keywords internal
 
-getCandidateClassifiers <- function(maxTime=10, metaFeatures, nModels) {
-  library(RMySQL)
-  library(BBmisc)
+getCandidateClassifiers <- function(maxTime, metaFeatures, nModels) {
+  #library(RMySQL)
+  #library(BBmisc)
   classifiers <- c('randomForest', 'c50', 'j48', 'deepboost', 'svm', 'naiveBayes','knn', 'bagging', 'neuralnet', 'plsda', 'part', 'fda', 'rpart', 'lda', 'lmt', 'rda')
   classifiersWt <- c(10, 13, 11, 21, 21, 10, 5, 25, 5, 6, 11, 20, 6, 5, 10)
   qOut <- dbSendQuery(mydb, "select * from metafeatures")
@@ -32,6 +34,7 @@ getCandidateClassifiers <- function(maxTime=10, metaFeatures, nModels) {
 
   #Separate Best Classifier Algorithms and Their Parameters
   bestClf <- metaDataFeatures$classifierAlgorithm
+  nClasses <- metaDataFeatures$nClasses
   bestClfParams <- metaDataFeatures$parameters
   metaDataFeatures$classifierAlgorithm <- NULL
   metaDataFeatures$parameters <- NULL
@@ -77,6 +80,10 @@ getCandidateClassifiers <- function(maxTime=10, metaFeatures, nModels) {
     ind <- distMat[i,]$index
     clf <- bestClf[ind]
     if(is.element(clf, classifiers) == FALSE){
+      #Exception for deep Boost requires binary classes dataset
+      if(clf == 'deepboost' && nClasses > 2)
+        next
+
       classifiers <- c(classifiers, clf)
       params <- c(params, bestClfParams[ind])
     }
@@ -91,13 +98,7 @@ getCandidateClassifiers <- function(maxTime=10, metaFeatures, nModels) {
     sum <- sum + classifiersWt[ind]
     ratio <- c(ratio, classifiersWt[ind])
   }
-  ratio <- ratio / sum * maxTime
+  ratio <- ratio / sum * (maxTime * 0.8) #Only using 80% of the allowed time budget
 
-  #ratio <- c(0.1135135135, 0.05405405405, 0.02702702703, 0.1351351351, 0.05882352941, 0.05945945946, 0.05945945946, 0.05405405405, 0.03243243243, 0.07027027027, 0.1081081081,
-  #           0.03243243243, 0.02702702703, 0.05405405405, 0.02702702703, 0.1135135135, 0.03243243243)
-
-  #for(i in 1:length(ratio)){
-  #  ratio[i] <- ratio[i] * maxTime
-  #}
   return (list(c = classifiers, r = ratio, p = params))
 }

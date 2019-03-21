@@ -17,9 +17,9 @@
 #' @keywords internal
 
 selectConfiguration <- function(R, classifierAlgorithm, tree, bestParams, B = 10) {
+  #library("rjson")
   cat('CURRENT CLASSIFIER: ', classifierAlgorithm, '\nbestParams till now:\n')
   print(bestParams)
-  library("rjson")
   #Read Classifier Algorithm Configuration Parameters
   #Open the Classifier Parameters Configuration File
   classifierConfDir <- paste('./classifiersData/', classifierAlgorithm,'.json',sep="")

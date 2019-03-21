@@ -16,7 +16,7 @@
 #' @keywords internal
 
 computeMetaFeatures <- function(dataset, maxTime, featureTypes) {
-  library(e1071)
+  #library(e1071)
   print('###################Preparation of Meta-Features of the Dataset###################')
   #1- number of instances
   nInstances <- nrow(dataset)

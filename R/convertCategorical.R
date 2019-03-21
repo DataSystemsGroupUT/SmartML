@@ -15,7 +15,7 @@
 #' @keywords internal
 
 convertCategorical <- function(dataset, B = 10) {
-  library(caret)
+  #library(caret)
   #Convert Factor/String Features into numeric features
   dmy <- dummyVars(" ~ .", data = dataset$TD[,names(dataset$TD) != "class"])
 

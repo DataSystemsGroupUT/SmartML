@@ -8,14 +8,14 @@
 #'
 #' @noRd
 #'
+#' @import devtools
+#' @import rjson
+#' @import aws.s3
+#' @import datasets
+#'
 #' @keywords internal
 
 sendToDatabase <- function(){
-  library(devtools)
-  library(rjson)
-  library("aws.s3")
-  library("datasets")
-
   #Get IP
   cntIP <- fromJSON(readLines("http://api.hostip.info/get_json.php", warn=F))$ip
 

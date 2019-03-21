@@ -16,15 +16,16 @@
 #'
 #' @examples readDataset('/Datasets/iris.csv', 0.1, c(), 'class', 'pca', c(), 2)
 #'
+#' @import RWeka
+#' @import farff
+#' @import caret
+#' @import mice
+#'
 #' @noRd
 #'
 #' @keywords internal
 
 readDataset <- function(directory, vRatio = 0.1, selectedFeats, classCol, preProcessF, featuresToPreProcess, nComp, missingVal, missingOpr) {
-  library(RWeka)
-  library(farff)
-  library(caret)
-  library(mice)
   #check if CSV or arff
   ext <- substr(directory, nchar(directory)-2, nchar(directory))
   #Read CSV file of data
