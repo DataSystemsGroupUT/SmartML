@@ -12,20 +12,20 @@
 #'
 #' @examples
 #'
-#' @import pls
-#' @import e1071
-#' @import randomForest
-#' @import FNN
-#' @import ipred
-#' @import RWeka
-#' @import C50
-#' @import rpart
-#' @import MASS
-#' @import caret
-#' @import stats
-#' @import mda
-#' @import nnet
-#' @import deepboost
+#' @importFrom  e1071 svm naiveBayes
+#' @importFrom  randomForest randomForest
+#' @importFrom  FNN knn
+#' @importFrom  ipred bagging
+#' @importFrom  RWeka J48 LMT
+#' @importFrom  C50 C5.0
+#' @importFrom  rpart rpart
+#' @importFrom  MASS lda
+#' @importFrom  klaR rda
+#' @importFrom  caret plsda
+#' @importFrom  stats glm predict
+#' @importFrom  mda fda
+#' @importFrom  nnet nnet
+#' @importFrom  deepboost deepboost
 #'
 #' @export runClassifier
 
@@ -55,7 +55,6 @@ runClassifier <- function(trainingSet, validationSet, params, classifierAlgorith
           params$tolerance <- (2^ as.double(params$tolerance))
         #print(params)
         model <- do.call(svm,c(list(x = xFeatures, y = xClass, type = 'C-classification'), params))
-        #interpret(model, xFeatures, xClass, 2)
         #check performance
         pred <- predict(model, yFeatures)
       }
@@ -179,7 +178,6 @@ runClassifier <- function(trainingSet, validationSet, params, classifierAlgorith
         params$ntree <- as.numeric(params$ntree)
         params$mtry <- min(params$mtry, ncol(xFeatures))
         model <- do.call(randomForest,c(list(x = xFeatures, y = as.factor(xClass)), params))
-        #interpret(model, xFeatures, xClass, 2)
         #check performance
         pred <- predict(model, yFeatures)
       }

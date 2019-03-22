@@ -30,7 +30,7 @@
 #'
 #' @return List of Choosen Classifier Algorithms Names with their parameter configurations for the \code{nModels} classifiers, and performance on Validation Sets if Option 2 is selected.
 #'
-#' @example
+#' @@example
 #'
 #' @import tictoc
 #'
