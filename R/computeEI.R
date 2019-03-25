@@ -11,6 +11,8 @@
 #' @examples
 #' computeEI(0.9, c(0.91, 0.95, 0.89, 0.88, 0.93), 5).
 #'
+#' @importFrom stats pnorm dnorm var
+#'
 #' @noRd
 #'
 #' @keywords internal

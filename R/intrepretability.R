@@ -9,13 +9,14 @@
 #'
 #' @examples interpret(\code{model}, data.frame(salary = c(623, 515, 611, 729, 843), class = c (0, 0, 0, 1, 1)))
 #'
+#' @importFrom iml FeatureImp Interaction Predictor
+#' @import ggplot2
+#'
 #' @noRd
 #'
 #' @keywords internal
 
 interpret <- function(model, x){
-  #library(ggplot2)
-  #library("iml")
   clas = as.factor(x$class)
   X = x[which(names(x) != "class")]
   X[] <- lapply(X, function(x) {

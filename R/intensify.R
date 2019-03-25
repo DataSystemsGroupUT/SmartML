@@ -23,7 +23,6 @@
 #' @keywords internal
 
 intensify <- function(R, bestParams, bestPerf, candidateConfs, foldedSet, trainingSet, validationSet, classifierAlgorithm, maxTime, timeTillNow , B = 10) {
-  cat('TIME TILL NOW: ', timeTillNow, '\n')
   for(j in 1:nrow(candidateConfs)){
     cntParams <- candidateConfs[j,]
     cntPerf <- c()
@@ -37,13 +36,15 @@ intensify <- function(R, bestParams, bestPerf, candidateConfs, foldedSet, traini
     againstMe <- 0
     while(pointer < B){
       for(i in pointer:min(pointer+N-1, B)){
-        cntPerf <- c(cntPerf, runClassifier(trainingSet[foldedSet[[i]], ], validationSet, cntParams, classifierAlgorithm))
+        tmpPerf <- runClassifier(trainingSet[foldedSet[[i]], ], validationSet, cntParams, classifierAlgorithm)
+        cntPerf <- c(cntPerf, tmpPerf$perf)
         if(i > length(bestPerf))
-          bestPerf <- c(bestPerf, runClassifier(trainingSet[foldedSet[[i]], ], validationSet, bestParams, classifierAlgorithm))
-
+          tmpPerf <- runClassifier(trainingSet[foldedSet[[i]], ], validationSet, bestParams, classifierAlgorithm)
+          bestPerf <- c(bestPerf, tmpPerf$perf)
         if(cntPerf[i] >= bestPerf[i])forMe <- forMe + 1
         else againstMe <- againstMe + 1
 
+        #Check time consumed till now
         t <- toc(quiet = TRUE)
         timeTillNow <- timeTillNow + t$toc - t$tic
         tic(quiet = TRUE)

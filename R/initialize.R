@@ -32,14 +32,12 @@ initialize <- function(classifierName, trainingSet, validationSet, result, initP
     gparams <- c(gparams, require)
     i <- i + 1
   }
-  #cat('params: ', initParams, '\n')
   initParams <- unlist(strsplit(initParams, "#"))
 
   j <- 1
   for(i in colnames(defaultParams)){
     if(i == 'performance' || i == 'nodesize')
       next
-    print(i)
     if(initParams[j] == 'NA')
       defaultParams[[i]] <- NA
     else
@@ -47,8 +45,6 @@ initialize <- function(classifierName, trainingSet, validationSet, result, initP
 
     j <- j + 1
   }
-  #print('finally:')
-  #print(defaultParams)
   defaultParams[["EI"]] <- NA
   return (defaultParams)
 }

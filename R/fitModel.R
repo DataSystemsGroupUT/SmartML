@@ -52,7 +52,7 @@ fitModel <- function(params, bestPerf, trainingSet, validationSet, foldedSet, cl
     if(length(bestPerf) >= i)
       perf <- bestPerf
     else
-      perf <- c(perf, runClassifier(trainingSet[foldedSet[[i]], ], validationSet, cntParams, classifierAlgorithm))
+      perf <- c(perf, (runClassifier(trainingSet[foldedSet[[i]], ], validationSet, cntParams, classifierAlgorithm))$perf)
 
     #row number of new node to be added
     newRowN <- nrow(tree) + 1

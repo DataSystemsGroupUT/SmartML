@@ -4,15 +4,18 @@
 \alias{autoRLearn}
 \title{Run smartML function for automatic Machine Learning.}
 \usage{
-autoRLearn(maxTime, directory, classCol = "class", selectedFeats = c(),
-  vRatio = 0.1, preProcessF = "N", featuresToPreProcess = c(),
-  nComp = NA, nModels = 4, option = 2, featureTypes = c(),
-  interp = 0, missingVal = C("NA", "?", " "), missingOpr = 0)
+autoRLearn(maxTime, directory, testDirectory, classCol = "class",
+  selectedFeats = c(), vRatio = 0.1, preProcessF = "N",
+  featuresToPreProcess = c(), nComp = NA, nModels = 3, option = 2,
+  featureTypes = c(), interp = 0, missingVal = c("NA", "?", " "),
+  missingOpr = 0)
 }
 \arguments{
 \item{maxTime}{Float of the maximum time budget for reading dataset, preprocessing, calculating meta-features, Algorithm Selection & hyper-parameter tuning process only in minutes(Excluding Model Interpretability) - This is applicable in case of Option = 2 only.}
 
 \item{directory}{String of the training dataset directory (SmartML accepts file formats arff/(csv with columns headers) ).}
+
+\item{testDirectory}{String of the testing dataset directory (SmartML accepts file formats arff/(csv with columns headers) ).}
 
 \item{classCol}{String of the name of the class label column in the dataset (default = 'class').}
 
@@ -39,19 +42,32 @@ autoRLearn(maxTime, directory, classCol = "class", selectedFeats = c(),
 
 \item{nModels}{Integer representing the number of classifier algorithms that you want to select based on Meta-Learning and start to tune using Bayesian Optimization (default = 3).}
 
+\item{option}{Integer representing either Classifier Algorithm Selection is needed only = 1 or Algorithm selection with its parameter tuning is required = 2 which is the default value.}
+
 \item{featureTypes}{Vector of either 'numerical' or 'categorical' representing the types of features in the dataset (default = c() --> any factor or character features will be considered as categorical otherwise numerical).}
 
 \item{interp}{Boolean representing if model interpretability (Feature Importance and Interaction) is needed or not (default = 0) This option will take more time budget if set to 1.}
 
+\item{missingVal}{Vector of strings representing the missing values in dataset (default: c('NA', '?', ' ')).}
+
 \item{missingOpr}{Boolean variable represents either delete instances with missing values or apply imputation using "MICE" library which helps you imputing missing values with plausible data values that are drawn from a distribution specifically designed for each missing datapoint- (default = 0 --> delete instances).}
-
-\item{options}{Integer representing either Classifier Algorithm Selection is needed only = 1 or Algorithm selection with its parameter tuning is required = 2 which is the default value.}
-
-\item{missingValues}{Vector of strings representing the missing values in dataset (default: c('NA', '?', ' ')).}
 }
 \value{
-List of Choosen Classifier Algorithms Names with their parameter configurations for the \code{nModels} classifiers, and performance on Validation Sets if Option 2 is selected.
+List of Results
+\itemize{
+\item "option=1" - Choosen Classifier Algorithms Names \code{clfs} with their parameters configurations \code{params} in case of \code{option=2},
+\item "option=2" - Best classifier algorithm name found \code{clfs} with its parameters configuration \code{params}, model variable \code{model}, and performance on TestingSet \code{perf}.
+}
 }
 \description{
 Run the smartML main function for automatic classifier algorithm selection, and hyper-parameter tuning.
+}
+\examples{
+\dontrun{
+autoRLearn(1, 'sampleDatasets/car/train.arff', \\
+'sampleDatasets/car/test.arff', option = 2, preProcessF = 'normalize')
+
+result <- autoRLearn(10, 'sampleDatasets/shuttle/train.arff', 'sampleDatasets/shuttle/test.arff')
+}
+
 }

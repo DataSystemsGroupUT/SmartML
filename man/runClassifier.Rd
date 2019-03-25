@@ -12,18 +12,41 @@ runClassifier(trainingSet, validationSet, params, classifierAlgorithm,
 
 \item{validationSet}{Dataframe of the validation Set.}
 
-\item{params}{A string of parameter configuration values for the current classifier to be tuned (parameters are separated by #).}
+\item{params}{A string of parameter configuration values for the current classifier to be tuned (parameters are separated by #) and can be obtained from \code{params} out of resulted list after running \code{autoRLearn} function.}
 
-\item{classifierAlgorithm}{String of the name of classifier algorithm used now.}
+\item{classifierAlgorithm}{String of the name of classifier algorithm used now.
+\itemize{
+\item "svm" - Support Vector Machines from e1071 package,
+\item "naiveBayes" - naiveBayes from e1071 package,
+\item "randomForest" - randomForest from randomForest package,
+\item "lmt" -  LMT Weka classifier trees from RWeka package,
+\item "lda" -  Linear Discriminant Analysis from MASS package,
+\item "j48" - J48 Weka classifier Trees from RWeka package,
+\item "bagging" - Bagging Classfier from ipred package,
+\item "knn" - K nearest Neighbors from FNN package,
+\item "nnet" - Simple neural net from nnet package,
+\item "fda" - Flexible discriminant Analysis from MDA package,
+\item "C50" - C50 decision tree from C5.0 pacakge,
+\item "rpart" - rpart decision tree from rpart package,
+\item "rda" - regularized discriminant analysis from klaR package,
+\item "plsda" - Partial Least Squares And Sparse Partial Least Squares Discriminant Analysis from caret package,
+\item "glm" - Fitting Generalized Linear Models from stats package,
+\item "deepboost" - deep boost classifier from deepboost package.
+}}
 
 \item{interp}{Boolean representing if interpretability is required or not (Default = 0).}
 }
 \value{
-
+List of performance on validationSet named \code{perf}, model fitted on trainingSet named \code{trainingSet}, and interpretability plots named \code{interact} in case of interp = 1
 }
 \description{
 Run the classifier on a training set and measure performance on a validation set.
 }
 \examples{
+\dontrun{
+result1 <- autoRLearn(10, 'sampleDatasets/shuttle/train.arff', 'sampleDatasets/shuttle/test.arff')
+dataset <- datasetReader('/Datasets/irisTrain.csv', '/Datasets/irisTest.csv')
+result2 <- runClassifier(dataset$Train, dataset$Test, result1$params, result1$clfs)
+}
 
 }

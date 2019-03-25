@@ -7,12 +7,13 @@
 #' @examples
 #' checkInternet().
 #'
+#' @importFrom RCurl getURL
+#'
 #' @noRd
 #'
 #' @keywords internal
 
 checkInternet <- function() {
-  #library(RCurl)
   out <- FALSE
   tryCatch({
     out <- is.character(getURL("www.yahoo.com"))

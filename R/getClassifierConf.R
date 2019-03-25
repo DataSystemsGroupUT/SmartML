@@ -8,14 +8,15 @@
 #'
 #' @examples getClassifierConf('knn').
 #'
+#' @importFrom rjson fromJSON
+#'
 #' @noRd
 #'
 #' @keywords internal
 
 getClassifierConf <- function(classifierName) {
-  #library("rjson")
   #Open the Classifier Parameters Configuration File
-  classifierConfDir <- paste('./classifiersData/', classifierName,'.json',sep="")
+  classifierConfDir <- paste('./man/classifiersData/', classifierName,'.json',sep="")
   result <- fromJSON(file = classifierConfDir)
 
   return(result)

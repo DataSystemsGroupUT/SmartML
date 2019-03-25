@@ -4,28 +4,52 @@
 #'
 #' @param trainingSet Dataframe of the training set.
 #' @param validationSet Dataframe of the validation Set.
-#' @param params A string of parameter configuration values for the current classifier to be tuned (parameters are separated by #).
+#' @param params A string of parameter configuration values for the current classifier to be tuned (parameters are separated by #) and can be obtained from \code{params} out of resulted list after running \code{autoRLearn} function.
 #' @param classifierAlgorithm String of the name of classifier algorithm used now.
+#' \itemize{
+#' \item "svm" - Support Vector Machines from e1071 package,
+#' \item "naiveBayes" - naiveBayes from e1071 package,
+#' \item "randomForest" - randomForest from randomForest package,
+#' \item "lmt" -  LMT Weka classifier trees from RWeka package,
+#' \item "lda" -  Linear Discriminant Analysis from MASS package,
+#' \item "j48" - J48 Weka classifier Trees from RWeka package,
+#' \item "bagging" - Bagging Classfier from ipred package,
+#' \item "knn" - K nearest Neighbors from FNN package,
+#' \item "nnet" - Simple neural net from nnet package,
+#' \item "fda" - Flexible discriminant Analysis from MDA package,
+#' \item "C50" - C50 decision tree from C5.0 pacakge,
+#' \item "rpart" - rpart decision tree from rpart package,
+#' \item "rda" - regularized discriminant analysis from klaR package,
+#' \item "plsda" - Partial Least Squares And Sparse Partial Least Squares Discriminant Analysis from caret package,
+#' \item "glm" - Fitting Generalized Linear Models from stats package,
+#' \item "deepboost" - deep boost classifier from deepboost package.
+#' }
 #' @param interp Boolean representing if interpretability is required or not (Default = 0).
 #'
-#' @return
+#' @return List of performance on validationSet named \code{perf}, model fitted on trainingSet named \code{trainingSet}, and interpretability plots named \code{interact} in case of interp = 1
 #'
 #' @examples
+#' \dontrun{
+#' result1 <- autoRLearn(10, 'sampleDatasets/shuttle/train.arff', 'sampleDatasets/shuttle/test.arff')
+#' dataset <- datasetReader('/Datasets/irisTrain.csv', '/Datasets/irisTest.csv')
+#' result2 <- runClassifier(dataset$Train, dataset$Test, result1$params, result1$clfs)
+#' }
 #'
 #' @importFrom  e1071 svm naiveBayes
 #' @importFrom  randomForest randomForest
 #' @importFrom  FNN knn
 #' @importFrom  ipred bagging
 #' @importFrom  RWeka J48 LMT
-#' @importFrom  C50 C5.0
-#' @importFrom  rpart rpart
+#' @importFrom  C50 C5.0 C5.0Control
+#' @importFrom  rpart rpart rpart.control
 #' @importFrom  MASS lda
 #' @importFrom  klaR rda
 #' @importFrom  caret plsda
 #' @importFrom  stats glm predict
-#' @importFrom  mda fda
+#' @importFrom  mda fda mars bruto gen.ridge polyreg
 #' @importFrom  nnet nnet
 #' @importFrom  deepboost deepboost
+#' @importFrom  utils capture.output
 #'
 #' @export runClassifier
 
@@ -43,6 +67,7 @@ runClassifier <- function(trainingSet, validationSet, params, classifierAlgorith
       params <- subset(params, select = -get(i))
     }
   }
+  invisible(capture.output(
   possibleError <- try(
     {
       #build model
@@ -60,7 +85,7 @@ runClassifier <- function(trainingSet, validationSet, params, classifierAlgorith
       }
       else if(classifierAlgorithm == 'plsda'){
         params$ncomp <- as.numeric(params$ncomp)
-        model <- caret:::plsda(xFeatures, as.factor(xClass), ncomp = params$ncomp, probMethod = params$probMethod, type = "class")
+        model <- plsda(xFeatures, as.factor(xClass), ncomp = params$ncomp, probMethod = params$probMethod, type = "class")
         pred <- predict(model, yFeatures)
       }
       else if(classifierAlgorithm == 'knn'){
@@ -92,7 +117,7 @@ runClassifier <- function(trainingSet, validationSet, params, classifierAlgorith
       else if(classifierAlgorithm == 'lda'){
         params$tol <- (2 ^ as.numeric(params$tol))
         learn <- cbind(xClass, xFeatures)
-        model <- lda(as.factor(xClass) ~., data = learn, tol = params$tol, method = params$method)
+        model <- invisible(capture.output(lda(as.factor(xClass) ~., data = learn, tol = params$tol, method = params$method)))
         pred <- predict(model, yFeatures)$class
       }
       else if(classifierAlgorithm == 'rpart'){
@@ -100,6 +125,7 @@ runClassifier <- function(trainingSet, validationSet, params, classifierAlgorith
         params$maxdepth <- as.numeric(params$maxdepth)
         params$xval <- as.numeric(params$xval)
         params$cp <- (2^ as.numeric(params$cp))
+        cat(params$minsplit, ' --- ', params$maxdepth, '---', params$xval, '---', params$cp)
         learn <- cbind(xClass, xFeatures)
         model <- rpart(as.factor(xClass) ~., data = learn, control = rpart.control(minsplit = params$minsplit, maxdepth = params$maxdepth, xval = params$xval, cp = params$cp) )
         pred <- predict(model, yFeatures)
@@ -134,7 +160,6 @@ runClassifier <- function(trainingSet, validationSet, params, classifierAlgorith
         params$maxdepth <- as.numeric(params$maxdepth)
         learn <- cbind(xClass, xFeatures)
         model <- bagging(as.factor(xClass) ~., data = learn, nbagg = params$nbagg, control = rpart.control(minsplit = params$minsplit, cp = params$cp, xval = params$xval, maxdepth = params$maxdepth) )
-        #interpret(model, xFeatures, xClass, 2)
         pred <- predict(model, yFeatures, type="class")
       }
       else if(classifierAlgorithm == 'deepboost'){
@@ -182,18 +207,18 @@ runClassifier <- function(trainingSet, validationSet, params, classifierAlgorith
         pred <- predict(model, yFeatures)
       }
       perf <- length(which(pred==yClass))/length(pred)
-    }
+    }))
   )
   if(inherits(possibleError, "try-error")){
-    print('Failed Run: These parameters configuration failed with current dataset')
-    return(0)
+    print('Failed Run with current parameter configuration...Skipping')
+    return(list(perf = 0))
   }
-  if(interp == 1 && classifierAlgorithm != 'knn'){
-    result <- list()
-    result$interact <- interpret(model, validationSet)
-    result$perf <- perf
-    return(result)
-  }
+  result <- list()
+  result$perf <- perf
+  result$model <- model
 
-  return (perf)
+  if(interp == 1 && classifierAlgorithm != 'knn'){
+    result$interact <- interpret(model, validationSet)
+  }
+  return(result)
 }

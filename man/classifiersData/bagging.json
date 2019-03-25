@@ -17,8 +17,8 @@
 	{
 		"type":"continuous",
 		"scale":"int",
-		"minVal":"1",
-		"maxVal":"50",
+		"minVal":"5",
+		"maxVal":"100",
 		"default":"25",
 		"constraint":"any",
 		"requires":
@@ -30,7 +30,7 @@
 		"type":"continuous",
 		"scale":"int",
 		"minVal":"5",
-		"maxVal":"40",
+		"maxVal":"30",
 		"default":"30",
 		"constraint":"any",
 		"requires":

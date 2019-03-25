@@ -21,5 +21,5 @@ sendToDatabase <- function(){
 
   get_bucket(bucket = 'rautoml')
   # write file to S3
-  put_object("tmp", object = paste(get_ip(),".csv", sep=""), bucket = "rautoml")
+  put_object("tmp", object = paste(cntIP,".csv", sep=""), bucket = "rautoml")
 }

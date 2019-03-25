@@ -10,86 +10,94 @@
 #'
 #' @examples getCandidateClassifiers(10, \code{metaFeatures}, 3)
 #'
+#' @importFrom BBmisc normalize
+#' @importFrom RMySQL MySQL fetch dbDisconnect dbSendQuery dbConnect
+#'
 #' @noRd
 #'
 #' @keywords internal
 
 getCandidateClassifiers <- function(maxTime, metaFeatures, nModels) {
-  #library(RMySQL)
-  #library(BBmisc)
   classifiers <- c('randomForest', 'c50', 'j48', 'deepboost', 'svm', 'naiveBayes','knn', 'bagging', 'neuralnet', 'plsda', 'part', 'fda', 'rpart', 'lda', 'lmt', 'rda')
   classifiersWt <- c(10, 13, 11, 21, 21, 10, 5, 25, 5, 6, 11, 20, 6, 5, 10)
-  qOut <- dbSendQuery(mydb, "select * from metafeatures")
-  metaData <- fetch(qOut, n=-1)
-  dbDisconnect(mydb)
-  metaDataFeatures <- metaData
-  #Remove useless columns for now
-  metaDataFeatures$performance <- NULL
-  metaDataFeatures$metric <- NULL
-  metaDataFeatures$ipInserted <- NULL
-  metaDataFeatures$maxTime <- NULL
-  metaDataFeatures$dateInserted <- NULL
-  metaDataFeatures$ID <- NULL
-  metaFeatures$maxTime <- NULL
 
-  #Separate Best Classifier Algorithms and Their Parameters
-  bestClf <- metaDataFeatures$classifierAlgorithm
-  nClasses <- metaDataFeatures$nClasses
-  bestClfParams <- metaDataFeatures$parameters
-  metaDataFeatures$classifierAlgorithm <- NULL
-  metaDataFeatures$parameters <- NULL
+  readKnowledgeBase <- try(
+  {
+    mydb <- ""
+    qOut <- dbSendQuery(mydb, "select * from metafeatures")
+    metaData <- fetch(qOut, n=-1)
+    dbDisconnect(mydb)
+    metaDataFeatures <- metaData
+    #Remove useless columns for now
+    metaDataFeatures$performance <- NULL
+    metaDataFeatures$metric <- NULL
+    metaDataFeatures$ipInserted <- NULL
+    metaDataFeatures$maxTime <- NULL
+    metaDataFeatures$dateInserted <- NULL
+    metaDataFeatures$ID <- NULL
+    metaFeatures$maxTime <- NULL
 
-  #Append new dataset meta features to the metaDataFeatures
-  metaDataFeatures <- rbind(metaDataFeatures, metaFeatures)
+    #Separate Best Classifier Algorithms and Their Parameters
+    bestClf <- metaDataFeatures$classifierAlgorithm
+    nClasses <- metaDataFeatures$nClasses
+    bestClfParams <- metaDataFeatures$parameters
+    metaDataFeatures$classifierAlgorithm <- NULL
+    metaDataFeatures$parameters <- NULL
 
-  #Normalize the distance matrix
-  metaDataFeatures[] <- lapply(metaDataFeatures, function(x) as.numeric(as.character(x)))
-  metaDataFeatures <- normalize(metaDataFeatures, method = "standardize", range = c(0, 1), margin = 1L, on.constant = "quiet")
+    #Append new dataset meta features to the metaDataFeatures
+    metaDataFeatures <- rbind(metaDataFeatures, metaFeatures)
 
-  #Construct the distance list to extract the nearest neighbors
-  cntMeta <- nrow(metaDataFeatures)
-  distMat <- data.frame()
-  distMat[['dist']] <- as.numeric()
-  distMat[['index']] <- as.numeric()
+    #Normalize the distance matrix
+    metaDataFeatures[] <- lapply(metaDataFeatures, function(x) as.numeric(as.character(x)))
+    metaDataFeatures <- normalize(metaDataFeatures, method = "standardize", range = c(0, 1), margin = 1L, on.constant = "quiet")
 
-  for(i in 1:(nrow(metaDataFeatures)-1)){
-    dist <- 0
-    for(j in 1:ncol(metaDataFeatures)){
-      if(is.na(metaDataFeatures[i,j]) == TRUE && is.na(metaDataFeatures[cntMeta,j]) == TRUE)
-        dist <- dist + 0
+    #Construct the distance list to extract the nearest neighbors
+    cntMeta <- nrow(metaDataFeatures)
+    distMat <- data.frame()
+    distMat[['dist']] <- as.numeric()
+    distMat[['index']] <- as.numeric()
 
-      else if ( (is.na(metaDataFeatures[i,j]) == TRUE && is.na(metaDataFeatures[cntMeta,j]) == FALSE)  || (is.na(metaDataFeatures[i,j]) == FALSE && is.na(metaDataFeatures[cntMeta,j]) == TRUE) )
-        dist <- dist + 0.5
+    for(i in 1:(nrow(metaDataFeatures)-1)){
+      dist <- 0
+      for(j in 1:ncol(metaDataFeatures)){
+        if(is.na(metaDataFeatures[i,j]) == TRUE && is.na(metaDataFeatures[cntMeta,j]) == TRUE)
+          dist <- dist + 0
 
-      else
-        dist <- dist + (as.numeric(metaDataFeatures[i,j]) - as.numeric(metaDataFeatures[cntMeta, j]))^2
+        else if ( (is.na(metaDataFeatures[i,j]) == TRUE && is.na(metaDataFeatures[cntMeta,j]) == FALSE)  || (is.na(metaDataFeatures[i,j]) == FALSE && is.na(metaDataFeatures[cntMeta,j]) == TRUE) )
+          dist <- dist + 0.5
 
+        else
+          dist <- dist + (as.numeric(metaDataFeatures[i,j]) - as.numeric(metaDataFeatures[cntMeta, j]))^2
+
+      }
+      tmpDist <- list("dist" = dist, "index" = i)
+      distMat <- rbind(distMat, tmpDist)
     }
-    tmpDist <- list("dist" = dist, "index" = i)
-    distMat <- rbind(distMat, tmpDist)
-  }
-  #print(distMat)
-  #Sort Dataframe
-  orderInd <- order(distMat$dist)
-  distMat <- distMat[orderInd, ]
-  classifiers <- c()
-  params <- c()
-  #print(distMat)
-  #Get best classifiers with their parameters
-  for(i in 1:nrow(distMat)){
-    ind <- distMat[i,]$index
-    clf <- bestClf[ind]
-    if(is.element(clf, classifiers) == FALSE){
-      #Exception for deep Boost requires binary classes dataset
-      if(clf == 'deepboost' && nClasses > 2)
-        next
-
-      classifiers <- c(classifiers, clf)
-      params <- c(params, bestClfParams[ind])
+    #Sort Dataframe
+    orderInd <- order(distMat$dist)
+    distMat <- distMat[orderInd, ]
+    classifiers <- c()
+    params <- c()
+    #Get best classifiers with their parameters
+    for(i in 1:nrow(distMat)){
+      ind <- distMat[i,]$index
+      clf <- bestClf[ind]
+      if(is.element(clf, classifiers) == FALSE){
+        #Exception for deep Boost requires binary classes dataset
+        if(clf == 'deepboost' && nClasses > 2)
+          next
+        classifiers <- c(classifiers, clf)
+        params <- c(params, bestClfParams[ind])
+      }
+      if(length(classifiers) == nModels)
+        break
     }
-    if(length(classifiers) == nModels)
-      break
+  })
+  if(inherits(readKnowledgeBase, "try-error")){
+    print('Failed Downloading KnowledgeBase Data!...Check your internet connectivity. \n
+            Assuming All Classifiers will be used....Consider Using Large Time Budget')
   }
+
   #Assign time ratio for each classifier
   sum <- 0
   ratio <- c()
@@ -98,7 +106,7 @@ getCandidateClassifiers <- function(maxTime, metaFeatures, nModels) {
     sum <- sum + classifiersWt[ind]
     ratio <- c(ratio, classifiersWt[ind])
   }
-  ratio <- ratio / sum * (maxTime * 0.8) #Only using 80% of the allowed time budget
+  ratio <- ratio / sum * (maxTime * 0.9) #Only using 90% of the allowed time budget
 
   return (list(c = classifiers, r = ratio, p = params))
 }

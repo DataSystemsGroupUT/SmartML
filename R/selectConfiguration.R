@@ -12,17 +12,17 @@
 #'
 #' @examples selectConfiguration(c('1'), 'knn', data.frame(fold = c(), parent = c(), params = c(), leftChild = c(), rightChild = c(), performance = c(), rowN = c()), '1', 10)
 #'
+#' @import rjson
+#' @importFrom stats rnorm
+#'
 #' @noRd
 #'
 #' @keywords internal
 
 selectConfiguration <- function(R, classifierAlgorithm, tree, bestParams, B = 10) {
-  #library("rjson")
-  cat('CURRENT CLASSIFIER: ', classifierAlgorithm, '\nbestParams till now:\n')
-  print(bestParams)
   #Read Classifier Algorithm Configuration Parameters
   #Open the Classifier Parameters Configuration File
-  classifierConfDir <- paste('./classifiersData/', classifierAlgorithm,'.json',sep="")
+  classifierConfDir <- paste('./man/classifiersData/', classifierAlgorithm,'.json',sep="")
   result <- fromJSON(file = classifierConfDir)
   #get list of Classifier Parameters
   params <- result$params
@@ -100,7 +100,6 @@ selectConfiguration <- function(R, classifierAlgorithm, tree, bestParams, B = 10
       else if(result[[parI]]$type == 'continuous'){
         minVal <- as.double(result[[parI]]$minVal)
         maxVal <- as.double(result[[parI]]$maxVal)
-        #cat('hhhhhh:', typeof(cntParam), '\n')
         cntParam <- as.double(cntParam)
         meanU <- (cntParam - minVal)/(maxVal - minVal)
         #generate four candidates
@@ -145,16 +144,9 @@ selectConfiguration <- function(R, classifierAlgorithm, tree, bestParams, B = 10
   #Remove Duplicate Candidate Configurations
   duplicates <- c()
   for(i in 1:nrow(candidates)){
-    #print('Candidate Parameters: (((((((((((((((((')
-    #print(candidates[i, 1:(ncol(candidates)-2)])
     for(j in 1:nrow(R)){
-      #print('CURRENT R: )))))))))))))))))')
-      #print(R[j,1:(ncol(R)-2)])
       flager <- FALSE
       for(k in 1:(ncol(candidates)-2)){
-        #print('A&A1')
-        #print(candidates[i,k])
-        #print(R[j,k])
         if((!is.na(candidates[i,k]) && !is.na(candidates[i,k])) || candidates[i,k] != R[j,k]){
           flager <- TRUE
           break
@@ -167,7 +159,5 @@ selectConfiguration <- function(R, classifierAlgorithm, tree, bestParams, B = 10
   if(length(duplicates) > 0)
     candidates <- candidates[-duplicates,]
   #End Remove Candidate Configurations
-  #print('Candidates:&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&')
-  #print(candidates)
   return(candidates)
 }

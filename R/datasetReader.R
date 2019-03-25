@@ -1,21 +1,29 @@
 #' @title Read Dataset File into Memory.
 #'
-#' @description Read the file of the dataset, and split it into training and validation sets.
+#' @description Read the file of the training and testing dataset, and perform preprocessing and data cleaning if necessary.
 #'
 #' @param directory String of the directory to the file containing the training dataset.
 #' @param testDirectory String of the directory to the file containing the testing dataset.
-#' @param vRatio The split ratio of the dataset file into training, and validation sets default(10% Validation - 90% Training).
-#' @param selectedFeats Vector of numbers of features to select from the dataset and ignore the rest of columns - empty vector means all features.
-#' @param classCol String of the class column of the dataset.
-#' @param preProcessF String of the preprocessing algorithm to apply.
-#' @param featuresToPreProcess Vector of numbers of features columns to perform preprocessing - empty vector means all features.
-#' @param nComp Number of components needed if either "pca" or "ica" feature preprocessors are needed.
-#' @param missingVal Vector of strings representing the missing values in dataset.
-#' @param missingOpr Boolean variable represents either delete instances with missing values or apply imputation using "MICE" library - (default = 0 --> delete instances).
+#' @param selectedFeats Vector of numbers of features columns to include from the training set and ignore the rest of columns - In case of empty vector, this means to include all features in the dataset file (default = c()).
+#' @param classCol String of the name of the class label column in the dataset (default = 'class').
+#' @param preProcessF string containing the name of the preprocessing algorithm (default = 'N' --> no preprocessing):
+#' \itemize{
+#' \item "boxcox" - apply a Box–Cox transform and values must be non-zero and positive in all features,
+#' \item "yeo-Johnson" - apply a Yeo-Johnson transform, like a BoxCox, but values can be negative,
+#' \item "zv" - remove attributes with a zero variance (all the same value),
+#' \item "center" - subtract mean from values,
+#' \item "scale" - divide values by standard deviation,
+#' \item "standardize" - perform both centering and scaling,
+#' \item "normalize" - normalize values,
+#' \item "pca" - transform data to the principal components,
+#' \item "ica" - transform data to the independent components.
+#' }
+#' @param featuresToPreProcess Vector of number of features to perform the feature preprocessing on - In case of empty vector, this means to include all features in the dataset file (default = c()) - This vector should be a subset of \code{selectedFeats}.
+#' @param nComp Integer of Number of components needed if either "pca" or "ica" feature preprocessors are needed.
+#' @param missingVal Vector of strings representing the missing values in dataset (default: c('NA', '?', ' ')).
+#' @param missingOpr Boolean variable represents either delete instances with missing values or apply imputation using "MICE" library which helps you imputing missing values with plausible data values that are drawn from a distribution specifically designed for each missing datapoint- (default = 0 --> delete instances).
 #'
-#' @return List of the Training and Validation Sets splits.
-#'
-#' @examples readDataset('/Datasets/irisTrain.csv', '/Datasets/irisTest.csv', 0.1, c(), 'class', 'pca', c(), 2)
+#' @return List of the TrainingSet \code{Train} and TestingSet \code{Test}.
 #'
 #' @import RWeka
 #' @import farff
@@ -24,11 +32,12 @@
 #' @importFrom  utils read.csv
 #' @importFrom stats complete.cases
 #'
-#' @noRd
-#'
-#' @keywords internal
+#' @examples
+#' \dontrun{
+#' dataset <- datasetReader('/Datasets/irisTrain.csv', '/Datasets/irisTest.csv')
+#' }
 
-readDataset <- function(directory, testDirectory, vRatio = 0.1, selectedFeats, classCol, preProcessF, featuresToPreProcess, nComp, missingVal, missingOpr) {
+datasetReader <- function(directory, testDirectory, selectedFeats = c(), classCol = 'class', preProcessF = 'N', featuresToPreProcess = c(), nComp = NA, missingVal = c('NA', '?', ' '), missingOpr = 0) {
   #check if CSV or arff
   ext <- substr(directory, nchar(directory)-2, nchar(directory))
   #Read CSV file of data
@@ -92,12 +101,5 @@ readDataset <- function(directory, testDirectory, vRatio = 0.1, selectedFeats, c
     data <- data[, selectedFeats]
     dataTED <- dataTED[, selectedFeats]
   }
-
-  # Use 90% of the dataset as Training - 10% of the dataset as Validation
-  smp_size <- floor((1-vRatio) * nrow(data))
-  # set the seed to make your partition reproducible
-  train_ind <- sample(seq_len(nrow(data)), size = smp_size)
-  trainingDataset <- data[train_ind, ]
-  validationDataset <- data[-train_ind, ]
-  return (list(TD = trainingDataset, VD = validationDataset, FULLTD = data, TED = dataTED))
+  return (list(Train = data, Test = dataTED))
 }

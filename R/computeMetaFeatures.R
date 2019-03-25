@@ -11,13 +11,15 @@
 #' @examples
 #' computeMetaFeatures(data.frame(salary = c(623, 515, 611, 729, 843), class = c (0, 0, 0, 1, 1)),  10, c('numerical', 'numerical')).
 #'
+#' @importFrom e1071 skewness kurtosis
+#' @importFrom stats var
+#'
 #' @noRd
 #'
 #' @keywords internal
 
 computeMetaFeatures <- function(dataset, maxTime, featureTypes) {
-  #library(e1071)
-  print('###################Preparation of Meta-Features of the Dataset###################')
+  print('###################START: Preparation of Meta-Features of the Dataset###################')
   #1- number of instances
   nInstances <- nrow(dataset)
   cat(sprintf("1-Number of Instances: %d\n", nInstances))
@@ -162,5 +164,6 @@ computeMetaFeatures <- function(dataset, maxTime, featureTypes) {
                    ratioNumToCat = ratioNumToCat, nCatFeatures = nCatFeatures, nNumFeatures = nNumFeatures,
                    nInstances = nInstances, nFeatures = nFeatures, nClasses = nClasses,
                    lognFeatures = lognFeatures, lognInstances = lognInstances, maxTime = maxTime)
+  print('###################END: Preparation of Meta-Features of the Dataset###################')
   return(df)
 }
