@@ -12,7 +12,7 @@ The goal of SmartML is to automate the process of classifier algorithm selection
 2. In addition, we offer different data preprocessing, and feature engineering algorithms that can be specified by user and applied on tabular datasets of either CSV or ARFF extensions easily.
 3. SmartML has a collaborative knowledge base that grows by time as more users are using our tool. So, we collect some statistical meta-features about their datasets with performance of different classifiers on these datasets. The collected data helps in the process of classifier algorithm selection by recommending $n$ candidate best classifiers to perform well on a new dataset. Then, time budget allowed is divided among these $n$ classifiers for their hyper-parameter tuning using SMAC.
 4. Finally, SmartML has the ability to do some model interpretability plots for feature importance and interaction by help of ```iml``` package for ML model interpretability.
-5. SmartML has a web service for the tool with a simple R Shiny interface that can be found <a href = "https://bigdata.cs.ut.ee/smartml/index.html"> HERE </a>
+5. SmartML has a web service for the tool with a simple R Shiny interface that can be found <a href = "https://bigdata.cs.ut.ee/smartml/index.html"> HERE </a>, and demonstration for how to use the web service can be found <a href-"https://www.youtube.com/watch?v=m5sbV1P8oqU">HERE</a>.
 
 ## Installation
 
