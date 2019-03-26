@@ -49,7 +49,7 @@ print(plot(result2$interp$featImp)) #Feature Importance Plot
 
 #### Publication
 
-SmartML has been accepted as a DEMO paper at EDBT 19 in Lisbon Portugal:
+SmartML has been accepted as a DEMO paper at EDBT 19 in Lisbon Portugal <a href = "http://openproceedings.org/2019/conf/edbt/EDBT19_paper_235.pdf">[PDF]</a>:
 ```
 Mohamed Maher, Sherif Sakr.,SMARTML: A Meta Learning-Based Framework for Automated Selection and Hyperparameter Tuning for Machine Learning Algorithms (2019). Advances in Database Technology-EDBT 2019: 22nd International Conference on Extending Database Technology, Lisbon, Portugal, March 26-29.
 ```
