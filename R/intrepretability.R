@@ -10,7 +10,6 @@
 #' @examples interpret(\code{model}, data.frame(salary = c(623, 515, 611, 729, 843), class = c (0, 0, 0, 1, 1)))
 #'
 #' @importFrom iml FeatureImp Interaction Predictor
-#' @import ggplot2
 #'
 #' @noRd
 #'
@@ -26,6 +25,5 @@ interpret <- function(model, x){
   out <- list()
   out$featImp <- FeatureImp$new(predictor, loss = "mae")
   out$interact = Interaction$new(predictor)
-  #print(plot(out$interact))
   return(out)
 }

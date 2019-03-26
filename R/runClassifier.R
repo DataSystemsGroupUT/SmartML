@@ -218,7 +218,7 @@ runClassifier <- function(trainingSet, validationSet, params, classifierAlgorith
   result$model <- model
 
   if(interp == 1 && classifierAlgorithm != 'knn'){
-    result$interact <- interpret(model, validationSet)
+    result$interpret <- interpret(model, validationSet)
   }
   return(result)
 }

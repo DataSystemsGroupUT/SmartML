@@ -1,4 +1,4 @@
-#' @title Run smartML function for automatic Machine Learning.
+#' @title Run smartML function for automatic Supervised Machine Learning.
 #'
 #' @description Run the smartML main function for automatic classifier algorithm selection, and hyper-parameter tuning.
 #'
@@ -32,7 +32,7 @@
 #' @return List of Results
 #' \itemize{
 #' \item "option=1" - Choosen Classifier Algorithms Names \code{clfs} with their parameters configurations \code{params} in case of \code{option=2},
-#' \item "option=2" - Best classifier algorithm name found \code{clfs} with its parameters configuration \code{params}, model variable \code{model}, and performance on TestingSet \code{perf}.
+#' \item "option=2" - Best classifier algorithm name found \code{clfs} with its parameters configuration \code{params}, model variable \code{model}, performance on TestingSet \code{perf}, and Feature Importance \code{interpret$featImp} / Interaction \code{interpret$Interact} plots in case of interpretability \code{interp} is needed.
 #' }
 #'
 #' @examples
@@ -45,6 +45,7 @@
 #'
 #' @importFrom tictoc tic toc
 #' @importFrom R.utils withTimeout
+#' @importFrom ggplot2 plot
 #'
 #' @export autoRLearn
 
@@ -185,6 +186,7 @@ autoRLearn <- function(maxTime, directory, testDirectory, classCol = 'class', se
     message("Time Budget allowed has finished.")
   })
 
+  print("Time Limit for Tuning process has been reached out...\nTraining the best classifier found over whole Training set now...")
   saveResultsError <- try(
   {
     bestAlgorithmParams <- bestAlgorithmParams[,names(bestAlgorithmParams) != "EI" & names(bestAlgorithmParams) != "performance"]
@@ -198,6 +200,18 @@ autoRLearn <- function(maxTime, directory, testDirectory, classCol = 'class', se
   if(inherits(saveResultsError, "try-error")){
     print('No Results Found!...Try increasing the time budget.')
     return(-1)
+  }
+
+  #Plotting interpretability plots if needed
+  if (interp == 1){
+    interpretPlotsError <- try(
+    {
+      print(plot(finalResult$interpret$featImp)) #Feature Importance Plot
+      print(plot(finalResult$interpret$interact)) #Feature Interaction Plot
+    })
+    if(inherits(interpretPlotsError, "try-error")){
+      print('Problem with the interpretability plots.')
+    }
   }
 
   #check internet connection and send data in tmp file to database if connection exists

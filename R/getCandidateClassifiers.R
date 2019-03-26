@@ -12,6 +12,7 @@
 #'
 #' @importFrom BBmisc normalize
 #' @importFrom RMySQL MySQL fetch dbDisconnect dbSendQuery dbConnect
+#' @importFrom httr POST
 #'
 #' @noRd
 #'
@@ -23,10 +24,8 @@ getCandidateClassifiers <- function(maxTime, metaFeatures, nModels) {
 
   readKnowledgeBase <- try(
   {
-    mydb <- ""
-    qOut <- dbSendQuery(mydb, "select * from metafeatures")
-    metaData <- fetch(qOut, n=-1)
-    dbDisconnect(mydb)
+    metaData <- content(POST("https://jncvt2k156.execute-api.eu-west-1.amazonaws.com/default/callKnowledgeBase"))
+    lapply( metaData , setNames , nm = c('datasetRatio', 'featuresKurtStdDev', 'featuresKurtMean', 'featuresKurtMax', 'featuresKurtMin', 'featuresSkewStdDev', 'featuresSkewMean', 'featuresSkewMax', 'featuresSkewMin', 'symbolsStdDev', 'symbolsSum', 'symbolsMean', 'classProbStdDev', 'classProbMean', 'classProbMax', 'classProbMin', 'classEntropy', 'ratioNumToCat', 'nCatFeatures', 'nNumFeatures', 'nInstances', 'nFeatures', 'nClasses', 'lognFeatures', 'lognInstances', 'classifierAlgorithm', 'parameters', 'maxTime', 'metric', 'performance') )
     metaDataFeatures <- metaData
     #Remove useless columns for now
     metaDataFeatures$performance <- NULL
