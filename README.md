@@ -28,6 +28,7 @@ install_github("DataSystemsGroupUT/Auto-Machine-Learning")
 Documentation for the SmartML R package can be found <a href = ""> HERE </a>
 ```
 
+---
 ## Example
 
 This is a basic example which shows you how to run SmartML simply:
@@ -37,6 +38,8 @@ This is a basic example which shows you how to run SmartML simply:
 result1 <- autoRLearn(1, 'sampleDatasets/car/train.arff', 'sampleDatasets/car/test.arff', option = 2, preProcessF = 'normalize', nModels = 2) #option 2 runs for Classifier Algorithm Selection Only
 result1$clfs  #Vector of recommended nModels classifiers
 result1$params #Vector of initial suggested parameter configurations of nModels classifiers
+```
+```
 #' Option 1 = Both Classifier Selection and Parameter Optimization
 result2 <- autoRLearn(10, 'sampleDatasets/shuttle/train.arff', 'sampleDatasets/shuttle/test.arff', interp = 1) # Option 1 runs for both classifier algorithm selection and parameter tuning for 10 minutes.
 result2$clfs #best classifier found
@@ -47,6 +50,7 @@ print(plot(result2$interp$featImp)) #Feature Importance Plot
 
 ```
 
+---
 #### Publication
 
 SmartML has been accepted as a DEMO paper at EDBT 19 in Lisbon Portugal <a href = "http://openproceedings.org/2019/conf/edbt/EDBT19_paper_235.pdf">[PDF]</a>:
