@@ -2,7 +2,7 @@
 % Please edit documentation in R/autoRLearn.R
 \name{autoRLearn}
 \alias{autoRLearn}
-\title{Run smartML function for automatic Machine Learning.}
+\title{Run smartML function for automatic Supervised Machine Learning.}
 \usage{
 autoRLearn(maxTime, directory, testDirectory, classCol = "class",
   selectedFeats = c(), vRatio = 0.1, preProcessF = "N",
@@ -56,7 +56,7 @@ autoRLearn(maxTime, directory, testDirectory, classCol = "class",
 List of Results
 \itemize{
 \item "option=1" - Choosen Classifier Algorithms Names \code{clfs} with their parameters configurations \code{params} in case of \code{option=2},
-\item "option=2" - Best classifier algorithm name found \code{clfs} with its parameters configuration \code{params}, model variable \code{model}, and performance on TestingSet \code{perf}.
+\item "option=2" - Best classifier algorithm name found \code{clfs} with its parameters configuration \code{params}, model variable \code{model}, performance on TestingSet \code{perf}, and Feature Importance \code{interpret$featImp} / Interaction \code{interpret$Interact} plots in case of interpretability \code{interp} is needed.
 }
 }
 \description{
