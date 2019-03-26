@@ -5,6 +5,7 @@ Curently, SmartML is an R-Package representing a meta learning-based framework f
 
 <img src = "https://bigdata.cs.ut.ee/smartml/images/arch.jpg">
 
+---
 ## Contribution and Goals:
 
 The goal of SmartML is to automate the process of classifier algorithm selection, and hyper-parameter tuning in supervised machine learning using a modified version of SMAC bayesian optimization that prefers explitation more than exploration thanks to Meta-Learning. 
@@ -14,6 +15,7 @@ The goal of SmartML is to automate the process of classifier algorithm selection
 4. Finally, SmartML has the ability to do some model interpretability plots for feature importance and interaction by help of ```iml``` package for ML model interpretability.
 5. SmartML has a web service for the tool with a simple R Shiny interface that can be found <a href = "https://bigdata.cs.ut.ee/smartml/index.html"> HERE </a>, and demonstration for how to use the web service can be found <a href="https://www.youtube.com/watch?v=m5sbV1P8oqU">HERE</a>.
 
+---
 ## Installation
 
 You can install the released version of SmartML from [Github](https://github.com/DataSystemsGroupUT/Auto-Machine-Learning) with:
