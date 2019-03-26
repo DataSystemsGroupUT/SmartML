@@ -24,7 +24,7 @@ install_github("DataSystemsGroupUT/Auto-Machine-Learning")
 
 ---
 ## Documentation
---> 
+```
 Documentation for the SmartML R package can be found <a href = ""> HERE </a>
 ```
 
