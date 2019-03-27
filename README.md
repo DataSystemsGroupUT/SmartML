@@ -25,9 +25,9 @@ install_github("DataSystemsGroupUT/SmartML")
 ```
 
 ---
-## Documentation
+## User Manual
 
-Documentation for the SmartML R package can be found <a href = "https://github.com/DataSystemsGroupUT/Auto-Machine-Learning/blob/master/manual.pdf"> HERE </a>
+Manual for the SmartML R package can be found <a href = "https://github.com/DataSystemsGroupUT/Auto-Machine-Learning/blob/master/manual.pdf"> HERE </a>
 
 ---
 ## Example
