@@ -21,7 +21,7 @@ The goal of SmartML is to automate the process of classifier algorithm selection
 You can install the released version of SmartML from [Github](https://github.com/DataSystemsGroupUT/Auto-Machine-Learning) with:
 
 ``` r
-install_github("DataSystemsGroupUT/SmartML")
+install_github("DataSystemsGroupUT/Auto-Machine-Learning")
 ```
 
 ---
