@@ -1,0 +1,9 @@
+* installing *source* package 'SmartML' ...
+** R
+** byte-compile and prepare package for lazy loading
+Error : .onLoad failed in loadNamespace() for 'rJava', details:
+  call: dirname(this$RuntimeLib)
+  error: a character vector argument expected
+ERROR: lazy loading failed for package 'SmartML'
+* removing 'C:/Users/s-moh/0-Labwork/SmartML_From_Scratch/Auto-Machine-Learning/..Rcheck/SmartML'
+In R CMD INSTALL

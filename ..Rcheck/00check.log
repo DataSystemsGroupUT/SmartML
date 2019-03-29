@@ -1,0 +1,29 @@
+* using log directory 'C:/Users/s-moh/0-Labwork/SmartML_From_Scratch/Auto-Machine-Learning/..Rcheck'
+* using R version 3.5.3 (2019-03-11)
+* using platform: x86_64-w64-mingw32 (64-bit)
+* using session charset: ISO8859-1
+* checking for file './DESCRIPTION' ... OK
+* checking extension type ... Package
+* this is package 'SmartML' version '0.1.0'
+* package encoding: UTF-8
+* checking package namespace information ... OK
+* checking package dependencies ... OK
+* checking if this is a source package ... OK
+* checking if there is a namespace ... OK
+* checking for .dll and .exe files ... OK
+* checking for hidden files and directories ... NOTE
+Found the following hidden files and directories:
+  .RData
+  .Rhistory
+  .gitignore
+  ..Rcheck
+  .Rproj.user
+  .git
+These were most likely included in error. See section 'Package
+structure' in the 'Writing R Extensions' manual.
+* checking for portable file names ... OK
+* checking whether package 'SmartML' can be installed ... ERROR
+Installation failed.
+See 'C:/Users/s-moh/0-Labwork/SmartML_From_Scratch/Auto-Machine-Learning/..Rcheck/00install.out' for details.
+* DONE
+Status: 1 ERROR, 1 NOTE

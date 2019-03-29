@@ -11,5 +11,6 @@ LazyData: true
 Imports:
   devtools,R.utils,stats,httr,mice,RCurl,tictoc,e1071,caret,mlbench,fastICA,RMySQL,BBmisc,rjson,ggplot2,RWeka,farff,pls,randomForest,FNN,klaR,rpart,ipred,C50,mda,MASS,nnet,deepboost,iml,datasets,aws.s3,xts
 Suggests:
-  knitr
+    knitr,
+    covr
 RoxygenNote: 6.1.1
