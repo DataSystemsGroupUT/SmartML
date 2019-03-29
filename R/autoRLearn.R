@@ -45,7 +45,7 @@
 #'
 #' @importFrom tictoc tic toc
 #' @importFrom R.utils withTimeout
-#' @importFrom ggplot2 plot
+#' @import ggplot2
 #'
 #' @export autoRLearn
 
