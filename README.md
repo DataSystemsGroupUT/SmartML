@@ -2,6 +2,8 @@
 
 [![Build Status](https://travis-ci.org/DataSystemsGroupUT/SmartML.svg?branch=master)](https://travis-ci.org/DataSystemsGroupUT/SmartML)
 [![DOI](http://joss.theoj.org/papers/10.21105/joss.00786/status.svg)](https://doi.org/10.5441/002/edbt.2019.54)
+[![codecov](https://codecov.io/gh/DataSystemsGroupUT/SmartML/branch/master/graph/badge.svg)](https://codecov.io/gh/DataSystemsGroupUT/SmartML)
+
 
 ## SmartML: 
 Curently, SmartML is an R-Package representing a meta learning-based framework for automated selection and hyperparameter tuning for machine learning algorithms. Being meta-learning based, the framework is able to simulate the role of the machine learning expert. In particular, the framework is equipped with a continuously updated knowledge base that stores information about the meta-features of all processed datasets along with the associated performance of the different classifiers and their tuned parameters. Thus, for any new dataset, SmartML automatically extracts its meta features and searches its knowledge base for the best performing algorithm to start its optimization process. In addition, SmartML makes use of the new runs to continuously enrich its knowledge base to improve its performance and robustness for future runs.
