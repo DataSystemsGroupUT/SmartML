@@ -57,7 +57,7 @@ print(plot(result2$interp$featImp)) #Feature Importance Plot
 ```
 
 ---
-#### Publication
+## Publication
 
 SmartML has been accepted as a DEMO paper at EDBT 19 in Lisbon Portugal <a href = "http://openproceedings.org/2019/conf/edbt/EDBT19_paper_235.pdf">[PDF]</a>:
 ```
