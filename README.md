@@ -1,5 +1,6 @@
 <img src = "https://bigdata.cs.ut.ee/smartml/images/banner.png">
 
+[![Build Status](https://travis-ci.org/DataSystemsGroupUT/SmartML.svg?branch=master)](https://travis-ci.org/DataSystemsGroupUT/SmartML)
 [![DOI](http://joss.theoj.org/papers/10.21105/joss.00786/status.svg)](https://doi.org/10.5441/002/edbt.2019.54)
 
 ## SmartML: 
