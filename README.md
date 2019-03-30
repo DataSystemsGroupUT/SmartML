@@ -63,3 +63,7 @@ SmartML has been accepted as a DEMO paper at EDBT 19 in Lisbon Portugal <a href 
 ```
 Mohamed Maher, Sherif Sakr.,SMARTML: A Meta Learning-Based Framework for Automated Selection and Hyperparameter Tuning for Machine Learning Algorithms (2019). Advances in Database Technology-EDBT 2019: 22nd International Conference on Extending Database Technology, Lisbon, Portugal, March 26-29.
 ```
+
+---
+## Funding:
+This work is funded by the European Regional Development Funds via the Mobilitas Plus programme (grant MOBTT75).
