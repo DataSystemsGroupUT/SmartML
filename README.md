@@ -67,3 +67,7 @@ Mohamed Maher, Sherif Sakr.,SMARTML: A Meta Learning-Based Framework for Automat
 ---
 ## Funding:
 This work is funded by the European Regional Development Funds via the Mobilitas Plus programme (grant MOBTT75).
+
+---
+## Licence:
+This work is licensed under the terms of the GNU General Public License, version 3.0 (GPLv3)
