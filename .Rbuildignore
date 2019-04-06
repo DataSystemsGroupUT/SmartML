@@ -4,4 +4,7 @@
 ^\.Rproj\.user$
 ^sampleDatasets$
 ^man\classifiersData\.json$
+^man\.pdf$
+^manual.pdf$
 ^tmp$
+^LICENCE$

@@ -12,7 +12,8 @@
 #'
 #' @importFrom BBmisc normalize
 #' @importFrom RMySQL MySQL fetch dbDisconnect dbSendQuery dbConnect
-#' @importFrom httr POST
+#' @importFrom httr POST content
+#' @importFrom stats setNames
 #'
 #' @noRd
 #'
