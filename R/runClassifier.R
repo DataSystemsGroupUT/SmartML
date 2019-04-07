@@ -82,7 +82,6 @@ runClassifier <- function(trainingSet, validationSet, params, classifierAlgorith
           params$cost <- (2^ as.double(params$cost))
         if(exists('tolerance', where=params) && !is.na(params$tolerance))
           params$tolerance <- (2^ as.double(params$tolerance))
-        #print(params)
         model <- do.call(svm,c(list(x = xFeatures, y = xClass, type = 'C-classification'), params))
         #check performance
         pred <- predict(model, yFeatures)
@@ -196,10 +195,8 @@ runClassifier <- function(trainingSet, validationSet, params, classifierAlgorith
       }
       else if(classifierAlgorithm == 'glm'){
         learn <- cbind(xClass, xFeatures)
-        print(params$variance)
         model <- glm(xClass ~., data = learn, family = params$family)
         pred <- predict(model, yFeatures, type="response")
-        print(pred)
       }
       else if(classifierAlgorithm == 'randomForest'){
         params$mtry <- as.numeric(params$mtry)
@@ -219,6 +216,7 @@ runClassifier <- function(trainingSet, validationSet, params, classifierAlgorith
   result <- list()
   result$perf <- perf
   result$model <- model
+  result$pred <- pred
 
   if(interp == 1 && classifierAlgorithm != 'knn'){
     result$interpret <- interpret(model, validationSet)

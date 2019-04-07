@@ -20,7 +20,6 @@
 
 convertCategorical <- function(dataset, trainDataset, testDataset, B = 10) {
   #Convert Factor/String Features into numeric features
-  library(caret)
   dmy <- caret::dummyVars(" ~ .", data = trainDataset[,names(trainDataset) != "class"])
   datasetTmp <- data.frame(predict(dmy, newdata = dataset$TD))
   dataset$FULLTD <- data.frame(predict(dmy, newdata = trainDataset))

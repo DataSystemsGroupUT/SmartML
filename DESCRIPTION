@@ -46,5 +46,7 @@ Suggests:
     covr,
     testthat,
     rmarkdown
+Depends:
+    caret
 RoxygenNote: 6.1.1
 VignetteBuilder: knitr

@@ -124,8 +124,8 @@ autoRLearn <- function(maxTime, directory, testDirectory, classCol = 'class', se
 
       #loop over each classifier
       for(i in 1:length(algorithms)){
-        classifierAlgorithm <- algorithms[i]
-        classifierAlgorithmParams <- algorithmsParams[i]
+        classifierAlgorithm <- algorithms[[i]]
+        classifierAlgorithmParams <- algorithmsParams[[i]]
 
         #Read maxTime for the current classifier algorithm and convert to seconds
         maxClfTime <- tRatio[i] * 60
