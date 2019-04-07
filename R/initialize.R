@@ -3,8 +3,6 @@
 #' @description Initialize the SMAC model with the classifier default parameter configuration.
 #'
 #' @param classifierName String of the classifier algorithm name.
-#' @param trainingSet Dataframe of the training set.
-#' @param validationSet Dataframe of the validation Set.
 #' @param result List of the converted classifier json parameter configuration into set of vectors and lists.
 #' @param initParams String of the initial parameter configuration of \code{classifierName} to start the model with.
 #'
@@ -16,7 +14,7 @@
 #'
 #' @keywords internal
 
-initialize <- function(classifierName, trainingSet, validationSet, result, initParams) {
+initialize <- function(classifierName, result, initParams) {
   #get list of Classifier Parameters
   params <- result$params
   #get list of GrandParent parametes

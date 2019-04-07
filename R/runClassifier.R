@@ -62,8 +62,12 @@ runClassifier <- function(trainingSet, validationSet, params, classifierAlgorith
   yFeatures <- subset(validationSet, select = -class)
   yClass <- c(subset(validationSet, select = class)$'class')
   #remove not available parameters
+  if(typeof(params) == 'character'){
+    classifierConf <- getClassifierConf(classifierAlgorithm)
+    params <- initialize(classifierAlgorithm, classifierConf, params)
+  }
   for(i in colnames(params)){
-    if(is.na(params[[i]]) || params[[i]] == 'NA'){
+    if(is.na(params[[i]]) || params[[i]] == 'NA' || params[[i]] == 'EI'){
       params <- subset(params, select = -get(i))
     }
   }
@@ -89,7 +93,6 @@ runClassifier <- function(trainingSet, validationSet, params, classifierAlgorith
         pred <- predict(model, yFeatures)
       }
       else if(classifierAlgorithm == 'knn'){
-        #cat('params: ', params, '\n')
         params <- as.numeric(params)
         pred <- do.call(knn,c(list(train = xFeatures, test = yFeatures, cl=xClass), params))
       }

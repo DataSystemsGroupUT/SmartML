@@ -113,7 +113,7 @@ autoRLearn <- function(maxTime, directory, testDirectory, classCol = 'class', se
   tryCatch({
     #Option 1: Only Candidate Classifiers with initial parameters will be resulted (No Hyper-parameter tuning)
     if(option == 1)
-      return (list(Clfs = algorithms, params = algorithmsParams))
+      return (list(clfs = algorithms, params = algorithmsParams, TRData = dataset$FULLTD, TEData = dataset$TED))
 
     #Option 2: Classifier Algorithm Selection + Parameter Tuning
     res <- withTimeout({
@@ -133,7 +133,7 @@ autoRLearn <- function(maxTime, directory, testDirectory, classCol = 'class', se
         classifierConf <- getClassifierConf(classifierAlgorithm)
         cat('\n\nStart Tuning Classifier Algorithm: ', classifierAlgorithm, '\n')
         #initialize step
-        R <- initialize(classifierAlgorithm, trainingSet, validationSet, classifierConf, classifierAlgorithmParams)
+        R <- initialize(classifierAlgorithm, classifierConf, classifierAlgorithmParams)
         cntParams <- R[, -which(names(R) == "performance")]
         #start hyperParameter tuning till maximum Time
         tic(quiet = TRUE)
@@ -220,5 +220,7 @@ autoRLearn <- function(maxTime, directory, testDirectory, classCol = 'class', se
     print("SEND TO DATABASE")
     #sendToDatabase()
   }
+  finalResult$TRData = dataset$FULLTD
+  finalResult$TEData = dataset$TED
   return(finalResult)
 }
