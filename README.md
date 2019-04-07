@@ -40,13 +40,13 @@ Manual for the SmartML R package can be found <a href = "https://github.com/Data
 This is a basic example which shows you how to run SmartML simply:
 
 ```{r example}
-#' Option 2 = Classifier Selection Only
-result1 <- autoRLearn(1, 'sampleDatasets/car/train.arff', 'sampleDatasets/car/test.arff', option = 2, preProcessF = 'normalize', nModels = 2) #option 2 runs for Classifier Algorithm Selection Only
+#' Option 1 = Classifier Selection Only
+result1 <- autoRLearn(1, 'sampleDatasets/car/train.arff', 'sampleDatasets/car/test.arff', option = 1, preProcessF = 'normalize', nModels = 2) #option 1 runs for Classifier Algorithm Selection Only
 result1$clfs  #Vector of recommended nModels classifiers
 result1$params #Vector of initial suggested parameter configurations of nModels classifiers
 ```
 ```
-#' Option 1 = Both Classifier Selection and Parameter Optimization
+#' Option 2 = Both Classifier Selection and Parameter Optimization
 result2 <- autoRLearn(10, 'sampleDatasets/shuttle/train.arff', 'sampleDatasets/shuttle/test.arff', interp = 1) # Option 1 runs for both classifier algorithm selection and parameter tuning for 10 minutes.
 result2$clfs #best classifier found
 result2$params #parameter configuration for best classifier
