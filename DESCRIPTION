@@ -44,5 +44,7 @@ Imports:
 Suggests:
     knitr,
     covr,
-    testthat
+    testthat,
+    rmarkdown
 RoxygenNote: 6.1.1
+VignetteBuilder: knitr

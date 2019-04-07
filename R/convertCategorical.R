@@ -12,7 +12,7 @@
 #' @examples
 #' convertCategorical(data.frame(salary = c(623, 515, 611, 729, 843), class = c (0, 0, 0, 1, 1)),  1).
 #'
-#' @importFrom caret dummyVars createFolds
+#' @import caret
 #'
 #' @noRd
 #'
@@ -20,9 +20,7 @@
 
 convertCategorical <- function(dataset, trainDataset, testDataset, B = 10) {
   #Convert Factor/String Features into numeric features
-  #print(names(trainDataset))
-  #print(trainDataset[,names(trainDataset) != "class"])
-  dmy <- dummyVars(" ~ .", data = trainDataset[,names(trainDataset) != "class"])
+  dmy <- caret::dummyVars(" ~ .", data = trainDataset[,names(trainDataset) != "class"])
   datasetTmp <- data.frame(predict(dmy, newdata = dataset$TD))
   dataset$FULLTD <- data.frame(predict(dmy, newdata = trainDataset))
   dataset$TED <- data.frame(predict(dmy, newdata = testDataset))

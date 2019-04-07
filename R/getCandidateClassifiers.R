@@ -26,8 +26,9 @@ getCandidateClassifiers <- function(maxTime, metaFeatures, nModels) {
   readKnowledgeBase <- try(
   {
     metaData <- content(POST("https://jncvt2k156.execute-api.eu-west-1.amazonaws.com/default/callKnowledgeBase"))
-    lapply( metaData , setNames , nm = c('datasetRatio', 'featuresKurtStdDev', 'featuresKurtMean', 'featuresKurtMax', 'featuresKurtMin', 'featuresSkewStdDev', 'featuresSkewMean', 'featuresSkewMax', 'featuresSkewMin', 'symbolsStdDev', 'symbolsSum', 'symbolsMean', 'classProbStdDev', 'classProbMean', 'classProbMax', 'classProbMin', 'classEntropy', 'ratioNumToCat', 'nCatFeatures', 'nNumFeatures', 'nInstances', 'nFeatures', 'nClasses', 'lognFeatures', 'lognInstances', 'classifierAlgorithm', 'parameters', 'maxTime', 'metric', 'performance') )
-    metaDataFeatures <- metaData
+    metaDataFeatures <- data.frame(matrix(unlist(metaData, recursive = FALSE), nrow = length(metaData), byrow = T))
+    colnames(metaDataFeatures) <- c('datasetRatio', 'featuresKurtStdDev', 'featuresKurtMean', 'featuresKurtMax', 'featuresKurtMin', 'featuresSkewStdDev', 'featuresSkewMean', 'featuresSkewMax', 'featuresSkewMin', 'symbolsStdDev', 'symbolsSum', 'symbolsMean', 'classProbStdDev', 'classProbMean', 'classProbMax', 'classProbMin', 'classEntropy', 'ratioNumToCat', 'nCatFeatures', 'nNumFeatures', 'nInstances', 'nFeatures', 'nClasses', 'lognFeatures', 'lognInstances', 'classifierAlgorithm', 'parameters', 'maxTime', 'metric', 'performance')
+
     #Remove useless columns for now
     metaDataFeatures$performance <- NULL
     metaDataFeatures$metric <- NULL
@@ -94,7 +95,7 @@ getCandidateClassifiers <- function(maxTime, metaFeatures, nModels) {
     }
   })
   if(inherits(readKnowledgeBase, "try-error")){
-    print('Failed Downloading KnowledgeBase Data!...Check your internet connectivity. \n
+    cat('Failed Downloading KnowledgeBase Data!...Check your internet connectivity. \n
             Assuming All Classifiers will be used....Consider Using Large Time Budget')
   }
 
