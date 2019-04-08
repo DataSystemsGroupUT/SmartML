@@ -25,7 +25,7 @@ sendToDatabase <- function(){
       res <- POST("https://jncvt2k156.execute-api.eu-west-1.amazonaws.com/default/s3-trigger-rautoml", body = list(data = paste(tmp, "&DATA&", sep=""),
                                                                                                                    fName = paste(cntIP,".csv&FILENAME&", sep=""),
                                                                                                                    encode = "json"))
-      write(query,file="tmp") #Empty the tmp file
+      write("",file="tmp") #Empty the tmp file
     })
   if(inherits(updateKB, "try-error"))
     print('Failed to update Knowledge base.')

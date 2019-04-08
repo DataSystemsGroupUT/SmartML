@@ -3,8 +3,9 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^sampleDatasets$
-^man\classifiersData\.json$
-^man\.pdf$
+^man\supportedAlgorithms.pdf$
+^man\metafeatures.pdf.pdf$
 ^manual.pdf$
 ^tmp$
 ^LICENSE$
+^CONTRIBUTE.md$

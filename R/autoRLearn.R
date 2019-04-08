@@ -78,7 +78,7 @@ autoRLearn <- function(maxTime, directory, testDirectory, classCol = 'class', se
   }
 
   #Convert Categorical Features to Numerical Ones and split the dataset
-  B <- max(10, int((metaFeatures$nInstances) / 2000)) #Number of folds to work on for the dataset and trees in SMAC forest model
+  B <- max(10, as.integer((metaFeatures$nInstances) / 2000)) #Number of folds to work on for the dataset and trees in SMAC forest model
   splitError <- try(
   {
     dataset <- convertCategorical(dataset, trainDataset, testDataset, B = B)

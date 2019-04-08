@@ -19,7 +19,6 @@ Imports:
   RCurl,
   tictoc,
   e1071,
-  caret,
   mlbench,
   fastICA,
   RMySQL,
@@ -41,7 +40,6 @@ Imports:
   deepboost,
   iml,
   datasets,
-  aws.s3,
   xts
 Suggests:
     knitr,
