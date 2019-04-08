@@ -22,8 +22,9 @@
 selectConfiguration <- function(R, classifierAlgorithm, tree, bestParams, B = 10) {
   #Read Classifier Algorithm Configuration Parameters
   #Open the Classifier Parameters Configuration File
-  classifierConfDir <- paste('./man/classifiersData/', classifierAlgorithm,'.json',sep="")
+  classifierConfDir <- system.file("extdata", paste(classifierAlgorithm,'.json',sep=""), package = "SmartML", mustWork = TRUE)
   result <- fromJSON(file = classifierConfDir)
+
   #get list of Classifier Parameters
   params <- result$params
 

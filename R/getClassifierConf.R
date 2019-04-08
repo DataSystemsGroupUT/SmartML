@@ -16,8 +16,7 @@
 
 getClassifierConf <- function(classifierName) {
   #Open the Classifier Parameters Configuration File
-  classifierConfDir <- paste('./man/classifiersData/', classifierName,'.json',sep="")
+  classifierConfDir <- system.file("extdata", paste(classifierName,'.json',sep=""), package = "SmartML", mustWork = TRUE)
   result <- fromJSON(file = classifierConfDir)
-
   return(result)
 }
