@@ -1,11 +1,11 @@
+^CONTRIBUTE\.md$
+^tmp$
+^man/supportedAlgorithms\.pdf$
+^man/metafeatures\.pdf$
 ^codecov\.yml$
 ^\.travis\.yml$
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^sampleDatasets$
-^man\supportedAlgorithms.pdf$
-^man\metafeatures.pdf.pdf$
 ^manual.pdf$
-^tmp$
 ^LICENSE$
-^CONTRIBUTE.md$
