@@ -57,6 +57,10 @@ print(plot(result2$interp$featImp)) #Feature Importance Plot
 ```
 
 ---
+## Contribution
+To Contribute to `SmartML`, Please Follow these <a href = "https://github.com/DataSystemsGroupUT/SmartML/blob/master/CONTRIBUTE.md"> GuideLines </a>
+
+---
 ## Publication
 
 SmartML has been accepted as a DEMO paper at EDBT 19 in Lisbon Portugal <a href = "http://openproceedings.org/2019/conf/edbt/EDBT19_paper_235.pdf">[PDF]</a>:
