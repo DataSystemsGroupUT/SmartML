@@ -1,13 +1,15 @@
 Package: SmartML
 Type: Package
 Title: Machine Learning Automation
-Version: 0.1.0
-Author: Mohamed Maher Zenhom Abdelrahman
+Version: 0.1
+Authors@R: c(
+    person("Mohamed", "Maher", email = "s-mohamed.zenhom@zewailcity.edu.eg", role = c("aut", "cre")),
+    person("Sherif", "Sakr", email = "sherif.sakr@ut.ee", role = "aut"))
 Maintainer: Mohamed Maher Zenhom Abdelrahman <m.maher525@gmail.com>
 Description: SmartML is a meta learning-based framework for automated selection and hyperparameter tuning for machine learning algorithms. Being meta-learning based, the framework is able to simulate the role of the machine learning expert. In particular, the framework is equipped with a continuously updated knowledge base that stores information about the meta-features of all processed datasets along with the associated performance of the different classifiers and their tuned parameters. Thus, for any new dataset, SmartML automatically extracts its meta features and searches its knowledge base for the best performing algorithm to start its optimization process. In addition, SmartML makes use of the new runs to continuously enrich its knowledge base to improve its performance and robustness for future runs.
 License: GPL-3
 Encoding: UTF-8
-LazyData: true
+LazyData: fasle
 Imports:
   devtools,
   R.utils,

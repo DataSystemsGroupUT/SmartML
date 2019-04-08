@@ -1,11 +1,10 @@
 ---
-title: "Vignette Title"
-author: "Vignette Author"
+title: "Introduction to SmartML: Automatic Supervised Machine Learning in R"
+author: "Mohamed Maher"
 date: "`r Sys.Date()`"
-#output: rmarkdown::html_vignette
-output: rmarkdown::pdf_document
+output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteIndexEntry{Introduction to SmartML: Automatic Supervised Machine Learning in R}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -17,50 +16,94 @@ knitr::opts_chunk$set(
 )
 ```
 
-Vignettes are long form documentation commonly included in packages. Because they are part of the distribution of the package, they need to be as compact as possible. The `html_vignette` output type provides a custom style sheet (and tweaks some options) to ensure that the resulting html is as small as possible. The `html_vignette` format:
 
-- Never uses retina figures
-- Has a smaller default figure size
-- Uses a custom CSS stylesheet instead of the default Twitter Bootstrap style
+## SmartML: 
+Curently, SmartML is an R-Package representing a meta learning-based framework for automated selection and hyperparameter tuning for machine learning algorithms. Being meta-learning based, the framework is able to simulate the role of the machine learning expert. In particular, the framework is equipped with a continuously updated knowledge base that stores information about the meta-features of all processed datasets along with the associated performance of the different classifiers and their tuned parameters. Thus, for any new dataset, SmartML automatically extracts its meta features and searches its knowledge base for the best performing algorithm to start its optimization process. In addition, SmartML makes use of the new runs to continuously enrich its knowledge base to improve its performance and robustness for future runs.
 
-## Vignette Info
+<img src = "https://bigdata.cs.ut.ee/smartml/images/arch.jpg">
 
-Note the various macros within the `vignette` section of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the `title` field and the `\VignetteIndexEntry` to match the title of your vignette.
+## SmartML Contribution Points and Goals:
 
-## Styles
+The goal of SmartML is to automate the process of classifier algorithm selection, and hyper-parameter tuning in supervised machine learning using a modified version of SMAC bayesian optimization that prefers explitation more than exploration thanks to Meta-Learning. 
+1. SmartML is the first R package to deal with the sueprvised machine learning automation, and it is built over 16 different classifier algorithms from different R packages. <br>
+2. In addition, we offer different data preprocessing, and feature engineering algorithms that can be specified by user and applied on tabular datasets of either CSV or ARFF extensions easily.
+3. SmartML has a collaborative knowledge base that grows by time as more users are using our tool.
+4. Finally, SmartML has the ability to do some model interpretability plots for feature importance and interaction by help of ```iml``` package for ML model interpretability.
+5. SmartML has a web service for the tool with a simple R Shiny interface that can be found <a href = "https://bigdata.cs.ut.ee/smartml/index.html"> HERE </a>, and demonstration for how to use the web service can be found <a href="https://www.youtube.com/watch?v=m5sbV1P8oqU">HERE</a>.
 
-The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
+## Installation
 
-    output: 
-      rmarkdown::html_vignette:
-        css: mystyles.css
+You can install the released version of SmartML from [Github](https://github.com/DataSystemsGroupUT/SmartML) with:
 
-## Figures
-
-The figure sizes have been customised so that you can easily put two images side-by-side. 
-
-```{r, fig.show='hold'}
-plot(1:10)
-plot(10:1)
+``` r
+install_github("DataSystemsGroupUT/SmartML")
 ```
 
-You can enable figure captions by `fig_caption: yes` in YAML:
+---
+## User Manual
 
-    output:
-      rmarkdown::html_vignette:
-        fig_caption: yes
+Manual for the SmartML R package can be found <a href = "https://github.com/DataSystemsGroupUT/Auto-Machine-Learning/blob/master/manual.pdf"> HERE </a>
 
-Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
+---
+## Example
 
-## More Examples
+This is a basic example which shows you how to run SmartML simply:
 
-You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
-
-```{r, echo=FALSE, results='asis'}
-knitr::kable(head(mtcars, 10))
+```{r}
+library(SmartML)
 ```
 
-Also a quote using `>`:
+```{r, warning = FALSE, results = 'hide'}
+#' Option 1 = Classifier Selection Only, apply PCA as a preprocessing step with 4 components and get two candidate models as output only
+result1 <- autoRLearn(1, 'sampleDatasets/car/train.arff', 'sampleDatasets/car/test.arff', option = 1, preProcessF = 'pca', nComp = 4, nModels = 2) #option 1 runs for Classifier Algorithm Selection Only
+```
+```{r, warning = FALSE}
+result1$clfs  #Vector of recommended nModels classifiers
+result1$params #Vector of initial suggested parameter configurations of nModels classifiers
+```
 
-> "He who gives up [code] safety for [code] speed deserves neither."
-([via](https://twitter.com/hadleywickham/status/504368538874703872))
+```{r, warning = FALSE, results = 'hide'}
+#' Option 2 = Both Classifier Selection and Parameter Optimization and compute model interpretability plots
+result2 <- autoRLearn(10, 'sampleDatasets/shuttle/train.arff', 'sampleDatasets/shuttle/test.arff', interp = TRUE) # Option 2 runs for both classifier algorithm selection and parameter tuning for 10 minutes.
+```
+```{r, warning = FALSE}
+result2$clfs #best classifier found
+result2$params #parameter configuration for best classifier
+result2$perf #performance of chosen classifier on testing set
+library(ggplot2)
+plot(result2$interp$featImp) #Feature Importance Plot
+```
+
+```{r, warning = FALSE, results = 'hide'}
+#' Option 2 = Both Classifier Selection and Parameter Optimization, use 20% validation set from training set, select only features (1,3,5,7,9,11,13,15) from dataset, and apply MICE for missing values imputation
+result3 <- autoRLearn(5, 'sampleDatasets/EEGEyeState/train.csv', 'sampleDatasets/EEGEyeState/test.csv', vRatio = 0.2, selectedFeats = c(1,3,5,7,9,11,13,15), missingOpr = TRUE) # Option 2 runs for both classifier algorithm selection and parameter tuning for 5 minutes.
+```
+```{r, warning = FALSE}
+result3$clfs #best classifier found
+result3$params #parameter configuration for best classifier
+result3$perf #performance of chosen classifier on testing set
+```
+
+---
+## Contribution GuideLines to SmartML
+To Contribute to `SmartML`, Please Follow these <a href = "https://github.com/DataSystemsGroupUT/SmartML/blob/master/CONTRIBUTE.md"> GuideLines </a>
+
+---
+## Publication
+
+For More details, you can view our publication about SmartML.
+SmartML has been accepted as a DEMO paper at EDBT 19 in Lisbon Portugal <a href = "http://openproceedings.org/2019/conf/edbt/EDBT19_paper_235.pdf">[PDF]</a>:
+```
+Mohamed Maher, Sherif Sakr.,SMARTML: A Meta Learning-Based Framework for Automated Selection and Hyperparameter Tuning for Machine Learning Algorithms (2019). Advances in Database Technology-EDBT 2019: 22nd International Conference on Extending Database Technology, Lisbon, Portugal, March 26-29.
+```
+
+---
+## Funding:
+This work is funded by the European Regional Development Funds via the Mobilitas Plus programme (grant MOBTT75).
+
+---
+## Licence:
+<p>
+  &copy; 2019, Data Systems Group at University of Tartu
+</p>
+This work is licensed under the terms of the GNU General Public License, version 3.0 (GPLv3)

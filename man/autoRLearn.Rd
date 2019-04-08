@@ -7,8 +7,8 @@
 autoRLearn(maxTime, directory, testDirectory, classCol = "class",
   selectedFeats = c(), vRatio = 0.1, preProcessF = "N",
   featuresToPreProcess = c(), nComp = NA, nModels = 3, option = 2,
-  featureTypes = c(), interp = 0, missingVal = c("NA", "?", " "),
-  missingOpr = 0)
+  featureTypes = c(), interp = FALSE, missingVal = c("NA", "?", " "),
+  missingOpr = FALSE)
 }
 \arguments{
 \item{maxTime}{Float of the maximum time budget for reading dataset, preprocessing, calculating meta-features, Algorithm Selection & hyper-parameter tuning process only in minutes(Excluding Model Interpretability) - This is applicable in case of Option = 2 only.}
@@ -46,11 +46,11 @@ autoRLearn(maxTime, directory, testDirectory, classCol = "class",
 
 \item{featureTypes}{Vector of either 'numerical' or 'categorical' representing the types of features in the dataset (default = c() --> any factor or character features will be considered as categorical otherwise numerical).}
 
-\item{interp}{Boolean representing if model interpretability (Feature Importance and Interaction) is needed or not (default = 0) This option will take more time budget if set to 1.}
+\item{interp}{Boolean representing if model interpretability (Feature Importance and Interaction) is needed or not (default = FALSE) This option will take more time budget if set to 1.}
 
 \item{missingVal}{Vector of strings representing the missing values in dataset (default: c('NA', '?', ' ')).}
 
-\item{missingOpr}{Boolean variable represents either delete instances with missing values or apply imputation using "MICE" library which helps you imputing missing values with plausible data values that are drawn from a distribution specifically designed for each missing datapoint- (default = 0 --> delete instances).}
+\item{missingOpr}{Boolean variable represents either delete instances with missing values or apply imputation using "MICE" library which helps you imputing missing values with plausible data values that are drawn from a distribution specifically designed for each missing datapoint- (default = FALSE to delete instances).}
 }
 \value{
 List of Results

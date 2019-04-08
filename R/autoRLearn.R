@@ -25,9 +25,9 @@
 #' @param nModels Integer representing the number of classifier algorithms that you want to select based on Meta-Learning and start to tune using Bayesian Optimization (default = 3).
 #' @param option Integer representing either Classifier Algorithm Selection is needed only = 1 or Algorithm selection with its parameter tuning is required = 2 which is the default value.
 #' @param featureTypes Vector of either 'numerical' or 'categorical' representing the types of features in the dataset (default = c() --> any factor or character features will be considered as categorical otherwise numerical).
-#' @param interp Boolean representing if model interpretability (Feature Importance and Interaction) is needed or not (default = 0) This option will take more time budget if set to 1.
+#' @param interp Boolean representing if model interpretability (Feature Importance and Interaction) is needed or not (default = FALSE) This option will take more time budget if set to 1.
 #' @param missingVal Vector of strings representing the missing values in dataset (default: c('NA', '?', ' ')).
-#' @param missingOpr Boolean variable represents either delete instances with missing values or apply imputation using "MICE" library which helps you imputing missing values with plausible data values that are drawn from a distribution specifically designed for each missing datapoint- (default = 0 --> delete instances).
+#' @param missingOpr Boolean variable represents either delete instances with missing values or apply imputation using "MICE" library which helps you imputing missing values with plausible data values that are drawn from a distribution specifically designed for each missing datapoint- (default = FALSE to delete instances).
 #'
 #' @return List of Results
 #' \itemize{
@@ -50,7 +50,7 @@
 #'
 #' @export autoRLearn
 
-autoRLearn <- function(maxTime, directory, testDirectory, classCol = 'class', selectedFeats = c(), vRatio = 0.1, preProcessF = 'N', featuresToPreProcess = c(), nComp = NA, nModels = 3, option = 2, featureTypes = c(), interp = 0, missingVal = c('NA', '?', ' '), missingOpr = 0) {
+autoRLearn <- function(maxTime, directory, testDirectory, classCol = 'class', selectedFeats = c(), vRatio = 0.1, preProcessF = 'N', featuresToPreProcess = c(), nComp = NA, nModels = 3, option = 2, featureTypes = c(), interp = FALSE, missingVal = c('NA', '?', ' '), missingOpr = FALSE) {
   #Read Dataset
   datasetReadError <- try(
   {
