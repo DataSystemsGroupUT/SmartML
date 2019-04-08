@@ -74,4 +74,7 @@ This work is funded by the European Regional Development Funds via the Mobilitas
 
 ---
 ## Licence:
+<p>
+  &copy; 2019, Data Systems Group at University of Tartu
+</p>
 This work is licensed under the terms of the GNU General Public License, version 3.0 (GPLv3)
