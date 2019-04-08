@@ -11,7 +11,7 @@ Curently, SmartML is an R-Package representing a meta learning-based framework f
 <img src = "https://bigdata.cs.ut.ee/smartml/images/arch.jpg">
 
 ---
-## Contribution and Goals:
+## SmartML Contribution Points and Goals:
 
 The goal of SmartML is to automate the process of classifier algorithm selection, and hyper-parameter tuning in supervised machine learning using a modified version of SMAC bayesian optimization that prefers explitation more than exploration thanks to Meta-Learning. 
 1. SmartML is the first R package to deal with the sueprvised machine learning automation, and it is built over 16 different classifier algorithms from different R packages. <br>
@@ -57,7 +57,7 @@ print(plot(result2$interp$featImp)) #Feature Importance Plot
 ```
 
 ---
-## Contribution
+## Contribution GuideLines to SmartML
 To Contribute to `SmartML`, Please Follow these <a href = "https://github.com/DataSystemsGroupUT/SmartML/blob/master/CONTRIBUTE.md"> GuideLines </a>
 
 ---
