@@ -30,18 +30,20 @@ initialize <- function(classifierName, result, initParams) {
     gparams <- c(gparams, require)
     i <- i + 1
   }
-  initParams <- unlist(strsplit(initParams, "#"))
 
-  j <- 1
-  for(i in colnames(defaultParams)){
-    if(i == 'performance' || i == 'nodesize')
-      next
-    if(initParams[j] == 'NA')
-      defaultParams[[i]] <- NA
-    else
-      defaultParams[[i]] <- initParams[j]
+  if ( initParams != ""){
+    initParams <- unlist(strsplit(initParams, "#"))
+    j <- 1
+    for(i in colnames(defaultParams)){
+      if(i == 'performance' || i == 'nodesize')
+        next
+      if(initParams[j] == 'NA')
+        defaultParams[[i]] <- NA
+      else
+        defaultParams[[i]] <- initParams[j]
 
-    j <- j + 1
+      j <- j + 1
+    }
   }
   defaultParams[["EI"]] <- NA
   return (defaultParams)

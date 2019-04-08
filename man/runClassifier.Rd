@@ -37,7 +37,7 @@ runClassifier(trainingSet, validationSet, params, classifierAlgorithm,
 \item{interp}{Boolean representing if interpretability is required or not (Default = 0).}
 }
 \value{
-List of performance on validationSet named \code{perf}, model fitted on trainingSet named \code{trainingSet}, and interpretability plots named \code{interact} in case of interp = 1
+List of performance on validationSet named \code{perf}, model fitted on trainingSet named \code{m}, predictions on test set \code{pred}, and interpretability plots named \code{interpret} in case of interp = 1
 }
 \description{
 Run the classifier on a training set and measure performance on a validation set.

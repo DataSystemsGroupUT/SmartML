@@ -26,7 +26,7 @@
 #' }
 #' @param interp Boolean representing if interpretability is required or not (Default = 0).
 #'
-#' @return List of performance on validationSet named \code{perf}, model fitted on trainingSet named \code{trainingSet}, and interpretability plots named \code{interact} in case of interp = 1
+#' @return List of performance on validationSet named \code{perf}, model fitted on trainingSet named \code{m}, predictions on test set \code{pred}, and interpretability plots named \code{interpret} in case of interp = 1
 #'
 #' @examples
 #' \dontrun{

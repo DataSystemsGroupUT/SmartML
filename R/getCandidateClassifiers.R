@@ -21,7 +21,11 @@
 
 getCandidateClassifiers <- function(maxTime, metaFeatures, nModels) {
   classifiers <- c('randomForest', 'c50', 'j48', 'deepboost', 'svm', 'naiveBayes','knn', 'bagging', 'neuralnet', 'plsda', 'part', 'fda', 'rpart', 'lda', 'lmt', 'rda')
-  classifiersWt <- c(10, 13, 11, 21, 21, 10, 5, 25, 5, 6, 11, 20, 6, 5, 10)
+  classifiersWt <- c(10, 20, 11, 21, 21, 10, 5, 25, 5, 6, 11, 13, 6, 5, 10, 5)
+
+  #Choosen Classifiers parameters initialization
+  params <- c()
+  cclassifiers <- c() #chosen classifiers
 
   readKnowledgeBase <- try(
   {
@@ -77,37 +81,38 @@ getCandidateClassifiers <- function(maxTime, metaFeatures, nModels) {
     #Sort Dataframe
     orderInd <- order(distMat$dist)
     distMat <- distMat[orderInd, ]
-    classifiers <- c()
-    params <- c()
+
     #Get best classifiers with their parameters
     for(i in 1:nrow(distMat)){
       ind <- distMat[i,]$index
       clf <- bestClf[ind]
-      if(is.element(clf, classifiers) == FALSE){
+      if(is.element(clf, cclassifiers) == FALSE){
         #Exception for deep Boost requires binary classes dataset
         if(clf == 'deepboost' && nClasses > 2)
           next
-        classifiers <- c(classifiers, clf)
+        cclassifiers <- c(cclassifiers, clf)
         params <- c(params, bestClfParams[ind])
       }
-      if(length(classifiers) == nModels)
+      if(length(cclassifiers) == nModels)
         break
     }
   })
   if(inherits(readKnowledgeBase, "try-error")){
-    cat('Failed Downloading KnowledgeBase Data!...Check your internet connectivity. \n
-            Assuming All Classifiers will be used....Consider Using Large Time Budget')
+    cat('Failed Downloading KnowledgeBase Data!...Check your internet connectivity....
+            Assuming All Classifiers will be used.... You should use Large Time Budgets for better results.')
   }
-
   #Assign time ratio for each classifier
   sum <- 0
   ratio <- c()
-  for (c in classifiers){
-    ind = which(classifiers == c)
+  if (length(cclassifiers) == 0)
+    cclassifiers <- classifiers #failed to make use of meta-learning --> tune over all classifiers
+
+  for (c in cclassifiers){
+    ind = which(cclassifiers == c)
     sum <- sum + classifiersWt[ind]
     ratio <- c(ratio, classifiersWt[ind])
   }
   ratio <- ratio / sum * (maxTime * 0.9) #Only using 90% of the allowed time budget
 
-  return (list(c = classifiers, r = ratio, p = params))
+  return (list(c = cclassifiers, r = ratio, p = params))
 }

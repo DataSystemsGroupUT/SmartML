@@ -107,13 +107,14 @@ autoRLearn <- function(maxTime, directory, testDirectory, classCol = 'class', se
   })
   if(inherits(candidateClfsError, "try-error")){
     print('Failed Generating Candidate Classifiers.')
-    return(-1)
   }
 
   tryCatch({
     #Option 1: Only Candidate Classifiers with initial parameters will be resulted (No Hyper-parameter tuning)
-    if(option == 1)
+    if(option == 1 && length(algorithms) == length(algorithmsParams))
       return (list(clfs = algorithms, params = algorithmsParams, TRData = dataset$FULLTD, TEData = dataset$TED))
+    else if(option == 1)
+      return ('Failed to Connect to KnowledgeBase, Option 1 can not be executed')
 
     #Option 2: Classifier Algorithm Selection + Parameter Tuning
     res <- withTimeout({
@@ -125,13 +126,16 @@ autoRLearn <- function(maxTime, directory, testDirectory, classCol = 'class', se
       #loop over each classifier
       for(i in 1:length(algorithms)){
         classifierAlgorithm <- algorithms[[i]]
-        classifierAlgorithmParams <- algorithmsParams[[i]]
+        if (i <= length(algorithmsParams))
+          classifierAlgorithmParams <- algorithmsParams[[i]]
+        else
+          classifierAlgorithmParams <- '' #use the default initial parameter configuration
 
         #Read maxTime for the current classifier algorithm and convert to seconds
         maxClfTime <- tRatio[i] * 60
         #Read the current classifier default parameter configuration
         classifierConf <- getClassifierConf(classifierAlgorithm)
-        cat('\n\nStart Tuning Classifier Algorithm: ', classifierAlgorithm, '\n')
+        cat('\nStart Tuning Classifier Algorithm: ', classifierAlgorithm, '\n')
         #initialize step
         R <- initialize(classifierAlgorithm, classifierConf, classifierAlgorithmParams)
         cntParams <- R[, -which(names(R) == "performance")]
@@ -196,7 +200,7 @@ autoRLearn <- function(maxTime, directory, testDirectory, classCol = 'class', se
     finalResult$clfs <- bestAlgorithm
     finalResult$params <- bestAlgorithmParams
     #save results to Temporary File
-    sendToTmp(metaFeatures, bestAlgorithm, bestAlgorithmParams, finalResult$perf)
+    sendToTmp(metaFeatures, bestAlgorithm, bestAlgorithmParams, finalResult$perf, nModels)
   })
   if(inherits(saveResultsError, "try-error")){
     print('No Results Found!...Try increasing the time budget.')
@@ -217,8 +221,8 @@ autoRLearn <- function(maxTime, directory, testDirectory, classCol = 'class', se
 
   #check internet connection and send data in tmp file to database if connection exists
   if(checkInternet() == TRUE){
-    print("SEND TO DATABASE")
-    #sendToDatabase()
+    print("Trying To Update KnowledgeBase")
+    sendToDatabase()
   }
   finalResult$TRData = dataset$FULLTD
   finalResult$TEData = dataset$TED

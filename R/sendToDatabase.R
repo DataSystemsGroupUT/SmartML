@@ -9,9 +9,8 @@
 #' @noRd
 #'
 #' @import devtools
-#' @import rjson
-#' @import aws.s3
-#' @import datasets
+#' @importFrom rjson fromJSON
+#' @importFrom httr POST
 #'
 #' @keywords internal
 
@@ -19,7 +18,16 @@ sendToDatabase <- function(){
   #Get IP
   cntIP <- fromJSON(readLines("http://api.hostip.info/get_json.php", warn=F))$ip
 
-  get_bucket(bucket = 'rautoml')
-  # write file to S3
-  put_object("tmp", object = paste(cntIP,".csv", sep=""), bucket = "rautoml")
+  #Update knowledge base
+  updateKB <- try(
+    {
+      tmp <- paste(readLines("tmp"), collapse="\n")
+      res <- POST("https://jncvt2k156.execute-api.eu-west-1.amazonaws.com/default/s3-trigger-rautoml", body = list(data = paste(tmp, "&DATA&", sep=""),
+                                                                                                                   fName = paste(cntIP,".csv&FILENAME&", sep=""),
+                                                                                                                   encode = "json"))
+      write(query,file="tmp") #Empty the tmp file
+    })
+  if(inherits(updateKB, "try-error"))
+    print('Failed to update Knowledge base.')
+
 }
