@@ -53,7 +53,7 @@ autoRLearn(maxTime, directory, testDirectory, classCol = "class",
 List of Results
 \itemize{
 \item "option=1" - Choosen Classifier Algorithms Names \code{clfs} with their parameters configurations \code{params}, Training DataFrame \code{TRData}, Test DataFrame \code{TEData} in case of \code{option=2},
-\item "option=2" - Best classifier algorithm name found \code{clfs} with its parameters configuration \code{params}, , Training DataFrame \code{TRData}, Test DataFrame \code{TEData}, model variable \code{model}, performance on TestingSet \code{perf}, and Feature Importance \code{interpret$featImp} / Interaction \code{interpret$Interact} plots in case of interpretability \code{interp} = TRUE and chosen model is not knn.
+\item "option=2" - Best classifier algorithm name found \code{clfs} with its parameters configuration \code{params}, , Training DataFrame \code{TRData}, Test DataFrame \code{TEData}, model variable \code{model}, predicted values on test set \code{pred}, performance on TestingSet \code{perf}, and Feature Importance \code{interpret$featImp} / Interaction \code{interpret$Interact} plots in case of interpretability \code{interp} = TRUE and chosen model is not knn.
 }
 }
 \description{

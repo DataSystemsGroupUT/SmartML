@@ -55,8 +55,8 @@ readDataset <- function(directory, testDirectory, vRatio = 0.1, selectedFeats, c
     dataTED <- dataTED[complete.cases(dataTED), ]
   }
   else{
-    data <-complete( mice(data, m = 1, threshold = 1, print = FALSE))
-    dataTED <- complete(mice(dataTED, m = 1, threshold = 1, print = FALSE))
+    data <-complete( mice(data, m = 1, threshold = 1, printFlag = FALSE))
+    dataTED <- complete(mice(dataTED, m = 1, threshold = 1, printFlag = FALSE))
   }
 
   #select features only upon user request

@@ -15,6 +15,17 @@
 #'
 #' @keywords internal
 
+Loss <- function(actual, predicted){
+  err <- 0
+  for(i in 1:length(actual)){
+    act <- as.character(actual[i])
+    pred <- substring(as.character(predicted[i]), 2)
+    if (act != pred)
+      err <- err + 1
+  }
+  return(err/length(actual))
+}
+
 interpret <- function(model, x){
   clas = as.factor(x$class)
   X = x[which(names(x) != "class")]
@@ -23,7 +34,7 @@ interpret <- function(model, x){
   })
   predictor = Predictor$new(model, data = X, y = as.factor(clas))
   out <- list()
-  out$featImp <- FeatureImp$new(predictor, loss = "mae")
+  out$featImp <- FeatureImp$new(predictor, loss = Loss)
   out$interact = Interaction$new(predictor)
   return(out)
 }
