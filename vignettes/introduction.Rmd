@@ -49,7 +49,7 @@ Manual for the SmartML R package can be found <a href = "https://github.com/Data
 
 This is a basic example which shows you how to run SmartML simply:
 ```{r, echo=FALSE, results='hide'}
-setwd('..')
+#setwd('..')
 ```
 
 ```{r}
@@ -58,7 +58,7 @@ library(SmartML)
 
 ```{r, warning = FALSE, results = 'hide'}
 #' Option 1 = Classifier Selection Only, apply PCA as a preprocessing step with 4 components and get two candidate models as output only
-result1 <- autoRLearn(1, 'sampleDatasets/shuttle/train.arff', 'sampleDatasets/shuttle/test.arff', option = 1, preProcessF = 'pca', nComp = 4, nModels = 2) #option 1 runs for Classifier Algorithm Selection Only
+result1 <- autoRLearn(1, '../sampleDatasets/shuttle/train.arff', '../sampleDatasets/shuttle/test.arff', option = 1, preProcessF = 'pca', nComp = 4, nModels = 2) #option 1 runs for Classifier Algorithm Selection Only
 ```
 ```{r, warning = FALSE}
 result1$clfs  #Vector of recommended nModels classifiers
@@ -72,7 +72,7 @@ resultRun$perf #model performance on test set
 
 ```{r, warning = FALSE, results = 'hide'}
 #' Option 2 = Both Classifier Selection and Parameter Optimization and compute model interpretability plots
-result2 <- autoRLearn(5, 'sampleDatasets/car/train.arff', 'sampleDatasets/car/test.arff', interp = TRUE) # Option 2 runs for both classifier algorithm selection and parameter tuning for 5 minutes.
+result2 <- autoRLearn(5, '../sampleDatasets/car/train.arff', '../sampleDatasets/car/test.arff', interp = TRUE) # Option 2 runs for both classifier algorithm selection and parameter tuning for 5 minutes.
 ```
 ```{r, warning = FALSE}
 result2$clfs #best classifier found
@@ -84,7 +84,7 @@ plot(result2$interpret$interact) #Feature Importance Plot
 
 ```{r, warning = FALSE, results = 'hide'}
 #' Option 2 = Both Classifier Selection and Parameter Optimization, use 20% validation set from training set, select only features (1,3,5,7,9,11,13,15) from dataset, and apply MICE for missing values imputation
-result3 <- autoRLearn(5, 'sampleDatasets/EEGEyeState/train.csv', 'sampleDatasets/EEGEyeState/test.csv', vRatio = 0.2, selectedFeats = c(1,3,5,7,9,11,13,15), missingOpr = TRUE) # Option 2 runs for both classifier algorithm selection and parameter tuning for 5 minutes.
+result3 <- autoRLearn(5, '../sampleDatasets/EEGEyeState/train.csv', '../sampleDatasets/EEGEyeState/test.csv', vRatio = 0.2, selectedFeats = c(1,3,5,7,9,11,13,15), missingOpr = TRUE) # Option 2 runs for both classifier algorithm selection and parameter tuning for 5 minutes.
 ```
 ```{r, warning = FALSE}
 result3$clfs #best classifier found
@@ -93,7 +93,7 @@ result3$perf #performance of chosen classifier on testing set
 ```
 
 ```{r, echo=FALSE, results='hide'}
-setwd('vignettes')
+#setwd('vignettes')
 ```
 ---
 ## Contribution GuideLines to SmartML
