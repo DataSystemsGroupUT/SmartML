@@ -83,8 +83,8 @@ plot(result2$interpret$featImp) #Feature Importance Plot
 ```
 
 ```{r, warning = FALSE, results = 'hide'}
-#' Option 2 = Both Classifier Selection and Parameter Optimization, use 20% validation set from training set, select only features (1,3,5,7,9,11,13,15) from dataset, and apply MICE for missing values imputation
-result3 <- autoRLearn(3, system.file("extdata", "car/train.arff", package = "SmartML"), system.file("extdata", "car/test.arff", package = "SmartML"), vRatio = 0.2, selectedFeats = c(1,2,5,6,7)) # Option 2 runs for both classifier algorithm selection and parameter tuning for 3 minute.
+#' Option 2 = Both Classifier Selection and Parameter Optimization, use 20% validation set from training set, select only features (1,3,5,7,9,11,13,15) from dataset, select only 2 classifiers to be tuned and apply MICE for missing values imputation
+result3 <- autoRLearn(3, system.file("extdata", "car/train.arff", package = "SmartML"), system.file("extdata", "car/test.arff", package = "SmartML"), vRatio = 0.2, selectedFeats = c(1,2,5,6,7), nModels = 2) # Option 2 runs for both classifier algorithm selection and parameter tuning for 3 minute.
 ```
 ```{r, warning = FALSE}
 result3$clfs #best classifier found
