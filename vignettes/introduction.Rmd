@@ -62,7 +62,7 @@ result1 <- autoRLearn(1, system.file("extdata", "shuttle/train.arff", package = 
 result1$clfs  #Vector of recommended nModels classifiers
 result1$params #Vector of initial suggested parameter configurations of nModels recommended classifiers
 ```
-```{r, warning=FALSE, results = 'hide'}
+```{r, warning=FALSE}
 #Use recommended model to train over training data and make predictions over test data
 resultRun <- runClassifier(result1$TRData, result1$TEData, result1$params[[1]], result1$clfs[[1]])
 resultRun$perf #model performance on test set
@@ -70,7 +70,7 @@ resultRun$perf #model performance on test set
 
 ```{r, warning = FALSE, results = 'hide'}
 #' Option 2 = Both Classifier Selection and Parameter Optimization and compute model interpretability plots
-result2 <- autoRLearn(2, system.file("extdata", "car/train.arff", package = "SmartML"), system.file("extdata", "car/test.arff", package = "SmartML"), interp = TRUE) # Option 2 runs for both classifier algorithm selection and parameter tuning for 2 minutes.
+result2 <- autoRLearn(2, system.file("extdata", "shuttle/train.arff", package = "SmartML"), system.file("extdata", "shuttle/test.arff", package = "SmartML"), interp = TRUE) # Option 2 runs for both classifier algorithm selection and parameter tuning for 2 minutes.
 ```
 ```{r, warning = FALSE}
 result2$clfs #best classifier found
@@ -78,6 +78,7 @@ result2$params #parameter configuration for best classifier
 result2$perf #performance of chosen classifier on testing set after fitting on whole training set
 ```
 ```{r, warning = FALSE}
+library(ggplot2)
 plot(result2$interpret$featImp) #Feature Importance Plot
 ```
 
