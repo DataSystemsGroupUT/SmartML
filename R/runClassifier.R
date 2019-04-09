@@ -215,11 +215,15 @@ runClassifier <- function(trainingSet, validationSet, params, classifierAlgorith
   }
   result <- list()
   result$perf <- perf
+
+  if(interp == 1 && classifierAlgorithm != 'knn'){ #no interpretability available for knn
+    result$interpret <- interpret(model, validationSet)
+  }
+  else if(classifierAlgorithm == 'knn') #no model available for knn
+    model <- 'knn'
+
   result$model <- model
   result$pred <- pred
 
-  if(interp == 1 && classifierAlgorithm != 'knn'){
-    result$interpret <- interpret(model, validationSet)
-  }
   return(result)
 }

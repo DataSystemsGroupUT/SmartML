@@ -7,8 +7,7 @@
 autoRLearn(maxTime, directory, testDirectory, classCol = "class",
   selectedFeats = c(), vRatio = 0.1, preProcessF = "N",
   featuresToPreProcess = c(), nComp = NA, nModels = 3, option = 2,
-  featureTypes = c(), interp = FALSE, missingVal = c("NA", "?", " "),
-  missingOpr = FALSE)
+  featureTypes = c(), interp = FALSE, missingOpr = FALSE)
 }
 \arguments{
 \item{maxTime}{Float of the maximum time budget for reading dataset, preprocessing, calculating meta-features, Algorithm Selection & hyper-parameter tuning process only in minutes(Excluding Model Interpretability) - This is applicable in case of Option = 2 only.}
@@ -48,15 +47,13 @@ autoRLearn(maxTime, directory, testDirectory, classCol = "class",
 
 \item{interp}{Boolean representing if model interpretability (Feature Importance and Interaction) is needed or not (default = FALSE) This option will take more time budget if set to 1.}
 
-\item{missingVal}{Vector of strings representing the missing values in dataset (default: c('NA', '?', ' ')).}
-
 \item{missingOpr}{Boolean variable represents either delete instances with missing values or apply imputation using "MICE" library which helps you imputing missing values with plausible data values that are drawn from a distribution specifically designed for each missing datapoint- (default = FALSE to delete instances).}
 }
 \value{
 List of Results
 \itemize{
-\item "option=1" - Choosen Classifier Algorithms Names \code{clfs} with their parameters configurations \code{params} in case of \code{option=2},
-\item "option=2" - Best classifier algorithm name found \code{clfs} with its parameters configuration \code{params}, model variable \code{model}, performance on TestingSet \code{perf}, and Feature Importance \code{interpret$featImp} / Interaction \code{interpret$Interact} plots in case of interpretability \code{interp} is needed.
+\item "option=1" - Choosen Classifier Algorithms Names \code{clfs} with their parameters configurations \code{params}, Training DataFrame \code{TRData}, Test DataFrame \code{TEData} in case of \code{option=2},
+\item "option=2" - Best classifier algorithm name found \code{clfs} with its parameters configuration \code{params}, , Training DataFrame \code{TRData}, Test DataFrame \code{TEData}, model variable \code{model}, performance on TestingSet \code{perf}, and Feature Importance \code{interpret$featImp} / Interaction \code{interpret$Interact} plots in case of interpretability \code{interp} = TRUE and chosen model is not knn.
 }
 }
 \description{

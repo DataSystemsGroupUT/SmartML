@@ -26,13 +26,12 @@
 #' @param option Integer representing either Classifier Algorithm Selection is needed only = 1 or Algorithm selection with its parameter tuning is required = 2 which is the default value.
 #' @param featureTypes Vector of either 'numerical' or 'categorical' representing the types of features in the dataset (default = c() --> any factor or character features will be considered as categorical otherwise numerical).
 #' @param interp Boolean representing if model interpretability (Feature Importance and Interaction) is needed or not (default = FALSE) This option will take more time budget if set to 1.
-#' @param missingVal Vector of strings representing the missing values in dataset (default: c('NA', '?', ' ')).
 #' @param missingOpr Boolean variable represents either delete instances with missing values or apply imputation using "MICE" library which helps you imputing missing values with plausible data values that are drawn from a distribution specifically designed for each missing datapoint- (default = FALSE to delete instances).
 #'
 #' @return List of Results
 #' \itemize{
-#' \item "option=1" - Choosen Classifier Algorithms Names \code{clfs} with their parameters configurations \code{params} in case of \code{option=2},
-#' \item "option=2" - Best classifier algorithm name found \code{clfs} with its parameters configuration \code{params}, model variable \code{model}, performance on TestingSet \code{perf}, and Feature Importance \code{interpret$featImp} / Interaction \code{interpret$Interact} plots in case of interpretability \code{interp} is needed.
+#' \item "option=1" - Choosen Classifier Algorithms Names \code{clfs} with their parameters configurations \code{params}, Training DataFrame \code{TRData}, Test DataFrame \code{TEData} in case of \code{option=2},
+#' \item "option=2" - Best classifier algorithm name found \code{clfs} with its parameters configuration \code{params}, , Training DataFrame \code{TRData}, Test DataFrame \code{TEData}, model variable \code{model}, performance on TestingSet \code{perf}, and Feature Importance \code{interpret$featImp} / Interaction \code{interpret$Interact} plots in case of interpretability \code{interp} = TRUE and chosen model is not knn.
 #' }
 #'
 #' @examples
@@ -50,12 +49,12 @@
 #'
 #' @export autoRLearn
 
-autoRLearn <- function(maxTime, directory, testDirectory, classCol = 'class', selectedFeats = c(), vRatio = 0.1, preProcessF = 'N', featuresToPreProcess = c(), nComp = NA, nModels = 3, option = 2, featureTypes = c(), interp = FALSE, missingVal = c('NA', '?', ' '), missingOpr = FALSE) {
+autoRLearn <- function(maxTime, directory, testDirectory, classCol = 'class', selectedFeats = c(), vRatio = 0.1, preProcessF = 'N', featuresToPreProcess = c(), nComp = NA, nModels = 3, option = 2, featureTypes = c(), interp = FALSE, missingOpr = FALSE) {
   #Read Dataset
   datasetReadError <- try(
   {
     #Read Training Dataset
-    dataset <- readDataset(directory, testDirectory, selectedFeats = selectedFeats, classCol = classCol, vRatio = vRatio, preProcessF = preProcessF, featuresToPreProcess = featuresToPreProcess, nComp = nComp, missingVal = missingVal, missingOpr = missingOpr)
+    dataset <- readDataset(directory, testDirectory, selectedFeats = selectedFeats, classCol = classCol, vRatio = vRatio, preProcessF = preProcessF, featuresToPreProcess = featuresToPreProcess, nComp = nComp, missingOpr = missingOpr)
     trainingSet <- dataset$TD
     #Read Testing Dataset
     testDataset <- dataset$TED
@@ -190,7 +189,7 @@ autoRLearn <- function(maxTime, directory, testDirectory, classCol = 'class', se
     message("Time Budget allowed has finished.")
   })
 
-  print("Time Limit for Tuning process has been reached out...\nTraining the best classifier found over whole Training set now...")
+  print("Time Limit for Tuning process has been reached out...Training the best classifier found over whole Training set now...")
   saveResultsError <- try(
   {
     bestAlgorithmParams <- bestAlgorithmParams[,names(bestAlgorithmParams) != "EI" & names(bestAlgorithmParams) != "performance"]
@@ -204,18 +203,6 @@ autoRLearn <- function(maxTime, directory, testDirectory, classCol = 'class', se
   if(inherits(saveResultsError, "try-error")){
     print('No Results Found!...Try increasing the time budget.')
     return(-1)
-  }
-
-  #Plotting interpretability plots if needed
-  if (interp == 1){
-    interpretPlotsError <- try(
-    {
-      print(plot(finalResult$interpret$featImp)) #Feature Importance Plot
-      print(plot(finalResult$interpret$interact)) #Feature Interaction Plot
-    })
-    if(inherits(interpretPlotsError, "try-error")){
-      print('Problem with the interpretability plots.')
-    }
   }
 
   #check internet connection and send data in tmp file to database if connection exists

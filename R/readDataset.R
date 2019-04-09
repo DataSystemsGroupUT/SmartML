@@ -10,7 +10,6 @@
 #' @param preProcessF String of the preprocessing algorithm to apply.
 #' @param featuresToPreProcess Vector of numbers of features columns to perform preprocessing - empty vector means all features.
 #' @param nComp Number of components needed if either "pca" or "ica" feature preprocessors are needed.
-#' @param missingVal Vector of strings representing the missing values in dataset.
 #' @param missingOpr Boolean variable represents either delete instances with missing values or apply imputation using "MICE" library - (default = 0 --> delete instances).
 #'
 #' @return List of the Training and Validation Sets splits.
@@ -28,7 +27,7 @@
 #'
 #' @keywords internal
 
-readDataset <- function(directory, testDirectory, vRatio = 0.1, selectedFeats, classCol, preProcessF, featuresToPreProcess, nComp, missingVal, missingOpr) {
+readDataset <- function(directory, testDirectory, vRatio = 0.1, selectedFeats, classCol, preProcessF, featuresToPreProcess, nComp, missingOpr) {
   #check if CSV or arff
   ext <- substr(directory, nchar(directory)-2, nchar(directory))
   #Read CSV file of data
@@ -50,20 +49,14 @@ readDataset <- function(directory, testDirectory, vRatio = 0.1, selectedFeats, c
   colnames(dataTED)[which(names(dataTED) == classCol)] <- "class"
   cInd <- grep("class", colnames(data)) #index of class column
 
-  #Convert characters representing missing values to NA
-  m1 <- as.matrix(data)
-  m1[m1 %in% missingVal] <- NA
-  m2 <- as.matrix(dataTED)
-  m2[m2 %in% missingVal] <- NA
-
   #check either to delete instance with missing values or perform imputation
-  if (missingOpr == 0){
-    data <- data[complete.cases(m1), ]
-    dataTED <- dataTED[complete.cases(m2), ]
+  if (missingOpr == FALSE){
+    data <- data[complete.cases(data), ]
+    dataTED <- dataTED[complete.cases(dataTED), ]
   }
   else{
-    data <- complete(mice(data, m = 1))
-    dataTED <- complete(mice(dataTED, m = 1))
+    data <-complete( mice(data, m = 1, threshold = 1, print = FALSE))
+    dataTED <- complete(mice(dataTED, m = 1, threshold = 1, print = FALSE))
   }
 
   #select features only upon user request
@@ -92,8 +85,7 @@ readDataset <- function(directory, testDirectory, vRatio = 0.1, selectedFeats, c
     data <- data[, selectedFeats]
     dataTED <- dataTED[, selectedFeats]
   }
-
-  # Use 90% of the dataset as Training - 10% of the dataset as Validation
+  # Use 90% of the dataset as Training - 10% of the dataset as Validation by default
   smp_size <- floor((1-vRatio) * nrow(data))
   # set the seed to make your partition reproducible
   train_ind <- sample(seq_len(nrow(data)), size = smp_size)
