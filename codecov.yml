@@ -11,3 +11,4 @@ coverage:
         threshold: 1%
 language: R
 sudo: false
+
