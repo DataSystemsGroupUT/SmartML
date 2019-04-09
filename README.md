@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/DataSystemsGroupUT/SmartML.svg?branch=master)](https://travis-ci.org/DataSystemsGroupUT/SmartML)
 [![DOI](http://joss.theoj.org/papers/10.21105/joss.00786/status.svg)](https://doi.org/10.5441/002/edbt.2019.54)
-[![codecov](https://codecov.io/gh/DataSystemsGroupUT/SmartML/branch/master/graph/badge.svg)](https://codecov.io/gh/DataSystemsGroupUT/SmartML)
+
 
 
 ## SmartML: 
