@@ -54,38 +54,38 @@ This is a basic example which shows you how to run SmartML simply:
 library(SmartML)
 ```
 
-```#{r, warning = FALSE, results = 'hide'}
-#' Option 1 = Classifier Selection Only, apply PCA as a preprocessing step with 4 components and get two candidate models as output only
-result1 <- autoRLearn(1, 'E:/sampleDatasets/shuttle/train.arff', 'E:/sampleDatasets/shuttle/test.arff', option = 1, preProcessF = 'pca', nComp = 4, nModels = 2) #option 1 runs for Classifier Algorithm Selection Only
+```{r, warning = FALSE, results = 'hide'}
+#' Option 1 = Classifier Selection Only, apply PCA as a preprocessing step with 4 components, get two candidate models as output only, and impute missing values using mice
+result1 <- autoRLearn(1, system.file("extdata", "/shuttle/train.arff", package = "SmartML"), system.file("extdata", "/shuttle/train.arff", package = "SmartML"), option = 1, preProcessF = 'pca', nComp = 4, nModels = 2, missingOpr = TRUE) #option 1 runs for Classifier Algorithm Selection Only
 ```
-```#{r, warning = FALSE}
+```{r, warning = FALSE}
 result1$clfs  #Vector of recommended nModels classifiers
 result1$params #Vector of initial suggested parameter configurations of nModels recommended classifiers
 ```
-```#{r, warning=FALSE, results = 'hide'}
+```{r, warning=FALSE, results = 'hide'}
 #Use recommended model to train over training data and make predictions over test data
 resultRun <- runClassifier(result1$TRData, result1$TEData, result1$params[[1]], result1$clfs[[1]])
 resultRun$perf #model performance on test set
 ```
 
-```#{r, warning = FALSE, results = 'hide'}
+```{r, warning = FALSE, results = 'hide'}
 #' Option 2 = Both Classifier Selection and Parameter Optimization and compute model interpretability plots
-result2 <- autoRLearn(2, 'E:/sampleDatasets/car/train.arff', 'E:/sampleDatasets/car/test.arff', interp = TRUE) # Option 2 runs for both classifier algorithm selection and parameter tuning for 2 minutes.
+result2 <- autoRLearn(2, system.file("extdata", "/car/train.arff", package = "SmartML"), system.file("extdata", "/car/test.arff", package = "SmartML"), interp = TRUE) # Option 2 runs for both classifier algorithm selection and parameter tuning for 2 minutes.
 ```
-```#{r, warning = FALSE}
+```{r, warning = FALSE}
 result2$clfs #best classifier found
 result2$params #parameter configuration for best classifier
 result2$perf #performance of chosen classifier on testing set after fitting on whole training set
 ```
-```#{r, warning = FALSE}
+```{r, warning = FALSE}
 plot(result2$interpret$featImp) #Feature Importance Plot
 ```
 
-```#{r, warning = FALSE, results = 'hide'}
+```{r, warning = FALSE, results = 'hide'}
 #' Option 2 = Both Classifier Selection and Parameter Optimization, use 20% validation set from training set, select only features (1,3,5,7,9,11,13,15) from dataset, and apply MICE for missing values imputation
-result3 <- autoRLearn(5, 'E:/sampleDatasets/EEGEyeState/train.csv', 'E:/sampleDatasets/EEGEyeState/test.csv', vRatio = 0.2, selectedFeats = c(1,3,5,7,9,11,13,15), missingOpr = TRUE) # Option 2 runs for both classifier algorithm selection and parameter tuning for 5 minutes.
+result3 <- autoRLearn(1, system.file("extdata", "/car/train.arff", package = "SmartML"), system.file("extdata", "/car/test.arff", package = "SmartML"), vRatio = 0.2, selectedFeats = c(1,2,5,6,7)) # Option 2 runs for both classifier algorithm selection and parameter tuning for 1 minute.
 ```
-```#{r, warning = FALSE}
+```{r, warning = FALSE}
 result3$clfs #best classifier found
 result3$params #parameter configuration for best classifier
 result3$perf #performance of chosen classifier on testing set
