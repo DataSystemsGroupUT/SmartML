@@ -69,17 +69,13 @@ resultRun$perf #model performance on test set
 ```
 
 ```{r, warning = FALSE, results = 'hide'}
-#' Option 2 = Both Classifier Selection and Parameter Optimization and compute model interpretability plots
-result2 <- autoRLearn(2, system.file("extdata", "shuttle/train.arff", package = "SmartML"), system.file("extdata", "shuttle/test.arff", package = "SmartML"), interp = TRUE) # Option 2 runs for both classifier algorithm selection and parameter tuning for 2 minutes.
+#' Option 2 = Both Classifier Selection and Parameter Optimization
+result2 <- autoRLearn(2, system.file("extdata", "shuttle/train.arff", package = "SmartML"), system.file("extdata", "shuttle/test.arff", package = "SmartML")) # Option 2 runs for both classifier algorithm selection and parameter tuning for 2 minutes.
 ```
 ```{r, warning = FALSE}
 result2$clfs #best classifier found
 result2$params #parameter configuration for best classifier
 result2$perf #performance of chosen classifier on testing set after fitting on whole training set
-```
-```{r, warning = FALSE}
-library(ggplot2)
-plot(result2$interpret$featImp) #Feature Importance Plot
 ```
 
 ```{r, warning = FALSE, results = 'hide'}
