@@ -27,6 +27,13 @@
 #' @param featureTypes Vector of either 'numerical' or 'categorical' representing the types of features in the dataset (default = c() --> any factor or character features will be considered as categorical otherwise numerical).
 #' @param interp Boolean representing if model interpretability (Feature Importance and Interaction) is needed or not (default = FALSE) This option will take more time budget if set to 1.
 #' @param missingOpr Boolean variable represents either delete instances with missing values or apply imputation using "MICE" library which helps you imputing missing values with plausible data values that are drawn from a distribution specifically designed for each missing datapoint- (default = FALSE to delete instances).
+#' @param metric Metric to be used in evaluation:
+#' \itemize{
+#' \item "acc" - Accuracy,
+#' \item "fscore" - Micro-Average of F-Score of each label,
+#' \item "recall" - Micro-Average of Recall of each label,
+#' \item "precision" - Micro-Average of Precision of each label.
+#' }
 #'
 #' @return List of Results
 #' \itemize{
@@ -49,7 +56,7 @@
 #'
 #' @export autoRLearn
 
-autoRLearn <- function(maxTime, directory, testDirectory, classCol = 'class', selectedFeats = c(), vRatio = 0.1, preProcessF = 'N', featuresToPreProcess = c(), nComp = NA, nModels = 3, option = 2, featureTypes = c(), interp = FALSE, missingOpr = FALSE) {
+autoRLearn <- function(maxTime, directory, testDirectory, classCol = 'class', metric = 'acc', selectedFeats = c(), vRatio = 0.3, preProcessF = 'N', featuresToPreProcess = c(), nComp = NA, nModels = 5, option = 2, featureTypes = c(), interp = FALSE, missingOpr = FALSE) {
   #Read Dataset
   datasetReadError <- try(
   {
@@ -62,7 +69,7 @@ autoRLearn <- function(maxTime, directory, testDirectory, classCol = 'class', se
     trainDataset <- dataset$FULLTD
   })
   if(inherits(datasetReadError, "try-error")){
-    print('Failed Reading Dataset: Make sure that dataset directory is correct and it is a valid csv/arff file.')
+    print('Error: Failed Reading Dataset: Make sure that dataset directory is correct and it is a valid csv/arff file.')
     return(-1)
   }
 
@@ -72,14 +79,15 @@ autoRLearn <- function(maxTime, directory, testDirectory, classCol = 'class', se
     metaFeatures <- computeMetaFeatures(trainingSet, maxTime, featureTypes)
   })
   if(inherits(metaFeaturesError, "try-error")){
-    print('Failed Extracting Dataset MetaFeatures.')
+    print('Error: Failed Extracting Dataset MetaFeatures.')
     return(-1)
   }
 
-  #Convert Categorical Features to Numerical Ones and split the dataset
-  B <- max(10, as.integer((metaFeatures$nInstances) / 2000)) #Number of folds to work on for the dataset and trees in SMAC forest model
   splitError <- try(
   {
+    #Convert Categorical Features to Numerical Ones and split the dataset
+    B <- max(10, as.integer((metaFeatures$nInstances) / 2000)) #Number of folds to work on for the dataset and trees in SMAC forest model
+
     dataset <- convertCategorical(dataset, trainDataset, testDataset, B = B)
     validationSet <- dataset$VD #Validation set
     trainingSet <- dataset$TD #Training Set
@@ -90,7 +98,7 @@ autoRLearn <- function(maxTime, directory, testDirectory, classCol = 'class', se
     testDataset <- dataset$TED
   })
   if(inherits(splitError, "try-error")){
-    print('Failed Splitting Dataset.')
+    print('Error: Failed Splitting Dataset.')
     return(-1)
   }
 
@@ -104,7 +112,7 @@ autoRLearn <- function(maxTime, directory, testDirectory, classCol = 'class', se
     algorithmsParams <- output$p #Initial Parameter configuration of each classifier.
   })
   if(inherits(candidateClfsError, "try-error")){
-    print('Failed Generating Candidate Classifiers.')
+    print('Warning: Failed to connect to knowledge base to generate Candidate classifiers.')
   }
 
   tryCatch({
@@ -112,7 +120,7 @@ autoRLearn <- function(maxTime, directory, testDirectory, classCol = 'class', se
     if(option == 1 && length(algorithms) == length(algorithmsParams))
       return (list(clfs = algorithms, params = algorithmsParams, TRData = dataset$FULLTD, TEData = dataset$TED))
     else if(option == 1)
-      return ('Failed to Connect to KnowledgeBase, Option 1 can not be executed')
+      return ('Error: Failed to Connect to KnowledgeBase, Option 1 can not be executed')
 
     #Option 2: Classifier Algorithm Selection + Parameter Tuning
     res <- withTimeout({
@@ -162,7 +170,7 @@ autoRLearn <- function(maxTime, directory, testDirectory, classCol = 'class', se
           candidateConfs <- selectConfiguration(R, classifierAlgorithm, tree, bestParams, B = B)
           #Intensify
           if(nrow(candidateConfs) > 0){
-            output <- intensify(R, bestParams, bestPerf, candidateConfs, foldedSet, trainingSet, validationSet, classifierAlgorithm, maxClfTime, timeTillNow, B = B)
+            output <- intensify(R, bestParams, bestPerf, candidateConfs, foldedSet, trainingSet, validationSet, classifierAlgorithm, maxClfTime, timeTillNow, B = B, metric = metric)
             bestParams <- output$params
             bestPerf <- output$perf
             timeTillNow <- output$timeTillNow
@@ -186,30 +194,35 @@ autoRLearn <- function(maxTime, directory, testDirectory, classCol = 'class', se
 
     }, timeout = maxTime * 60)
   }, TimeoutException = function(ex) {
-    message("Time Budget allowed has finished.")
+    message("NOTE: Time Budget allowed has been finished.")
   })
 
-  print("Time Limit for Tuning process has been reached out...Training the best classifier found over whole Training set now...")
-  saveResultsError <- try(
-  {
+  print("Time Limit for Tuning process has been reached out. Training the best classifier found over whole Training set now.")
+  if (bestAlgorithm != '')
     bestAlgorithmParams <- bestAlgorithmParams[,names(bestAlgorithmParams) != "EI" & names(bestAlgorithmParams) != "performance"]
-    #Run Classifier over all training set and check performance on testing set
-    finalResult <- runClassifier(trainingSet = trainDataset, validationSet = testDataset, params = bestAlgorithmParams, classifierAlgorithm = bestAlgorithm, interp = interp)
-    finalResult$clfs <- bestAlgorithm
-    finalResult$params <- bestAlgorithmParams
-    #save results to Temporary File
-    sendToTmp(metaFeatures, bestAlgorithm, bestAlgorithmParams, finalResult$perf, nModels)
-  })
-  if(inherits(saveResultsError, "try-error")){
-    print('No Results Found!...Try increasing the time budget.')
-    return(-1)
+  else{
+    bestAlgorithm <- algorithms[[1]]
+    bestAlgorithmParams <- algorithmsParams[[1]]
+  }
+
+  trainFinalModelError <- try(
+    {
+      #Run Classifier over all training set and check performance on testing set
+      finalResult <- runClassifier(trainingSet = trainDataset, validationSet = testDataset, params = bestAlgorithmParams, classifierAlgorithm = bestAlgorithm, metric = metric, interp = interp)
+      finalResult$clfs <- bestAlgorithm
+      finalResult$params <- bestAlgorithmParams
+      #save results to Temporary File
+      sendToTmp(metaFeatures, bestAlgorithm, bestAlgorithmParams, finalResult$perf, nModels, metric)
+    })
+  if(inherits(trainFinalModelError, "try-error")){
+    print('Error: No Enough Computational Resources. Can not build a model over the current dataset!')
   }
 
   #check internet connection and send data in tmp file to database if connection exists
   if(checkInternet() == TRUE){
-    print("Trying To Update KnowledgeBase")
     sendToDatabase()
   }
+
   finalResult$TRData = dataset$FULLTD
   finalResult$TEData = dataset$TED
   return(finalResult)

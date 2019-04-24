@@ -16,13 +16,19 @@
 #' \item "bagging" - Bagging Classfier from ipred package,
 #' \item "knn" - K nearest Neighbors from FNN package,
 #' \item "nnet" - Simple neural net from nnet package,
-#' \item "fda" - Flexible discriminant Analysis from MDA package,
 #' \item "C50" - C50 decision tree from C5.0 pacakge,
 #' \item "rpart" - rpart decision tree from rpart package,
 #' \item "rda" - regularized discriminant analysis from klaR package,
 #' \item "plsda" - Partial Least Squares And Sparse Partial Least Squares Discriminant Analysis from caret package,
 #' \item "glm" - Fitting Generalized Linear Models from stats package,
 #' \item "deepboost" - deep boost classifier from deepboost package.
+#' }
+#' @param metric Metric to be used in evaluation:
+#' \itemize{
+#' \item "acc" - Accuracy,
+#' \item "fscore" - Micro-Average of F-Score of each label,
+#' \item "recall" - Micro-Average of Recall of each label,
+#' \item "precision" - Micro-Average of Precision of each label
 #' }
 #' @param interp Boolean representing if interpretability is required or not (Default = 0).
 #'
@@ -46,14 +52,13 @@
 #' @importFrom  klaR rda
 #' @importFrom  caret plsda
 #' @importFrom  stats glm predict
-#' @importFrom  mda fda mars bruto gen.ridge polyreg
 #' @importFrom  nnet nnet
 #' @importFrom  deepboost deepboost
 #' @importFrom  utils capture.output
 #'
 #' @export runClassifier
 
-runClassifier <- function(trainingSet, validationSet, params, classifierAlgorithm, interp = 0) {
+runClassifier <- function(trainingSet, validationSet, params, classifierAlgorithm, metric = "acc", interp = 0) {
 
   #training set features and classes
   xFeatures <- subset(trainingSet, select = -class)
@@ -127,7 +132,6 @@ runClassifier <- function(trainingSet, validationSet, params, classifierAlgorith
         params$maxdepth <- as.numeric(params$maxdepth)
         params$xval <- as.numeric(params$xval)
         params$cp <- (2^ as.numeric(params$cp))
-        cat(params$minsplit, ' --- ', params$maxdepth, '---', params$xval, '---', params$cp)
         learn <- cbind(xClass, xFeatures)
         model <- rpart(as.factor(xClass) ~., data = learn, control = rpart.control(minsplit = params$minsplit, maxdepth = params$maxdepth, xval = params$xval, cp = params$cp) )
         pred <- predict(model, yFeatures)
@@ -171,19 +175,6 @@ runClassifier <- function(trainingSet, validationSet, params, classifierAlgorith
         params$beta <- as.numeric(params$beta)
         params$lambda <- as.numeric(params$lambda)
         model <- deepboost(as.factor(xClass) ~., data = learn, num_iter = params$num_iter, beta = params$beta, lambda = params$lambda, loss_type = params$loss_type, verbose = FALSE)
-        pred <- predict(model, yFeatures)
-      }
-      else if(classifierAlgorithm == 'fda'){
-        learn <- cbind(xClass, xFeatures)
-        params$dimension <- as.numeric(params$dimension)
-        J <- length(unique(xClass))
-        params$dimension <- min(params$dimension, J-1)
-        if (params$method == 'mars')m <- mars
-        else if(params$method == 'bruto') m <- bruto
-        else if(params$method == 'gen.ridge') m <- gen.ridge
-        else m <- polyreg
-
-        model <- fda(as.factor(xClass) ~., data = learn, dimension = params$dimension, method = m)
         pred <- predict(model, yFeatures)
       }
       else if(classifierAlgorithm == 'rda'){

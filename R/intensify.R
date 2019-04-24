@@ -13,6 +13,13 @@
 #' @param maxTime Float of maximum time budget allowed.
 #' @param timeTillNow Float of the time spent till now.
 #' @param B number of trees in the forest of trees of SMAC optimization algorithm (default = 10).
+#' @param metric Metric to be used in evaluation:
+#' \itemize{
+#' \item "acc" - Accuracy,
+#' \item "fscore" - Micro-Average of F-Score of each label,
+#' \item "recall" - Micro-Average of Recall of each label,
+#' \item "precision" - Micro-Average of Precision of each label
+#' }
 #'
 #' @return List of current best parameter configuration, its performance, dataframe of tried out candidate parameter configurations, and time till now.
 #'
@@ -22,7 +29,7 @@
 #'
 #' @keywords internal
 
-intensify <- function(R, bestParams, bestPerf, candidateConfs, foldedSet, trainingSet, validationSet, classifierAlgorithm, maxTime, timeTillNow , B = 10) {
+intensify <- function(R, bestParams, bestPerf, candidateConfs, foldedSet, trainingSet, validationSet, classifierAlgorithm, maxTime, timeTillNow , B = 10, metric = metric) {
   for(j in 1:nrow(candidateConfs)){
     cntParams <- candidateConfs[j,]
     cntPerf <- c()
@@ -36,10 +43,10 @@ intensify <- function(R, bestParams, bestPerf, candidateConfs, foldedSet, traini
     againstMe <- 0
     while(pointer < B){
       for(i in pointer:min(pointer+N-1, B)){
-        tmpPerf <- runClassifier(trainingSet[foldedSet[[i]], ], validationSet, cntParams, classifierAlgorithm)
+        tmpPerf <- runClassifier(trainingSet[foldedSet[[i]], ], validationSet, cntParams, classifierAlgorithm, metric = metric)
         cntPerf <- c(cntPerf, tmpPerf$perf)
         if(i > length(bestPerf))
-          tmpPerf <- runClassifier(trainingSet[foldedSet[[i]], ], validationSet, bestParams, classifierAlgorithm)
+          tmpPerf <- runClassifier(trainingSet[foldedSet[[i]], ], validationSet, bestParams, classifierAlgorithm, metric = metric)
           bestPerf <- c(bestPerf, tmpPerf$perf)
         if(cntPerf[i] >= bestPerf[i])forMe <- forMe + 1
         else againstMe <- againstMe + 1

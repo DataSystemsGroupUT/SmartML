@@ -10,6 +10,13 @@
 #' @param classifierAlgorithm String of the name of classifier algorithm used now.
 #' @param tree List of data frames, representing the data structure for the forest of trees of the SMAC model.
 #' @param B number of trees in the forest of trees of SMAC optimization algorithm (default = 10).
+#' @param metric Metric to be used in evaluation:
+#' \itemize{
+#' \item "acc" - Accuracy,
+#' \item "fscore" - Micro-Average of F-Score of each label,
+#' \item "recall" - Micro-Average of Recall of each label,
+#' \item "precision" - Micro-Average of Precision of each label
+#' }
 #'
 #' @return List of: \code{t} trees of fitted SMAC Model - \code{p} performance of current parameter configuration on whole dataset - \code{bp} Current added parameter configuration.
 #'
@@ -19,7 +26,7 @@
 #'
 #' @keywords internal
 
-fitModel <- function(params, bestPerf, trainingSet, validationSet, foldedSet, classifierAlgorithm, tree, B = 10) {
+fitModel <- function(params, bestPerf, trainingSet, validationSet, foldedSet, classifierAlgorithm, tree, B = 10, metric = 'acc') {
   #fit SMAC model using the current best parameters
   #get current best parameters
   cntParams <- params
@@ -52,7 +59,7 @@ fitModel <- function(params, bestPerf, trainingSet, validationSet, foldedSet, cl
     if(length(bestPerf) >= i)
       perf <- bestPerf
     else
-      perf <- c(perf, (runClassifier(trainingSet[foldedSet[[i]], ], validationSet, cntParams, classifierAlgorithm))$perf)
+      perf <- c(perf, (runClassifier(trainingSet[foldedSet[[i]], ], validationSet, cntParams, classifierAlgorithm, metric = metric))$perf)
 
     #row number of new node to be added
     newRowN <- nrow(tree) + 1
