@@ -30,6 +30,9 @@
 #' @param metric Metric to be used in evaluation:
 #' \itemize{
 #' \item "acc" - Accuracy,
+#' \item "avg-fscore" - Average of F-Score of each label,
+#' \item "avg-recall" - Average of Recall of each label,
+#' \item "avg-precision" - Average of Precision of each label,
 #' \item "fscore" - Micro-Average of F-Score of each label,
 #' \item "recall" - Micro-Average of Recall of each label,
 #' \item "precision" - Micro-Average of Precision of each label.
@@ -152,7 +155,6 @@ autoRLearn <- function(maxTime, directory, testDirectory, classCol = 'class', me
         tree <- data.frame(fold=integer(), parent=integer(), params=character(), rightChild=integer(), leftChild=integer(), performance=double(), rowN = integer())
         bestParams <- cntParams
         bestPerf <- c()
-        counter1 <- 1
         classifierFailureCounter <- 0
 
         repeat{
@@ -161,7 +163,7 @@ autoRLearn <- function(maxTime, directory, testDirectory, classCol = 'class', me
           #Check if this classifer failed for more than 5 times, skip to the next classifier
           if(length(bestPerf) > 0 && mean(bestPerf) == 0){
             classifierFailureCounter <- classifierFailureCounter + 1
-            if(classifierFailureCounter > 5) break
+            if(classifierFailureCounter > 4) break
           }
           tree <- output$t
           bestPerf <- output$p

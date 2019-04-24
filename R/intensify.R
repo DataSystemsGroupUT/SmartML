@@ -16,9 +16,12 @@
 #' @param metric Metric to be used in evaluation:
 #' \itemize{
 #' \item "acc" - Accuracy,
+#' \item "avg-fscore" - Average of F-Score of each label,
+#' \item "avg-recall" - Average of Recall of each label,
+#' \item "avg-precision" - Average of Precision of each label,
 #' \item "fscore" - Micro-Average of F-Score of each label,
 #' \item "recall" - Micro-Average of Recall of each label,
-#' \item "precision" - Micro-Average of Precision of each label
+#' \item "precision" - Micro-Average of Precision of each label.
 #' }
 #'
 #' @return List of current best parameter configuration, its performance, dataframe of tried out candidate parameter configurations, and time till now.

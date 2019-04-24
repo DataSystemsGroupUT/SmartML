@@ -26,6 +26,9 @@
 #' @param metric Metric to be used in evaluation:
 #' \itemize{
 #' \item "acc" - Accuracy,
+#' \item "avg-fscore" - Average of F-Score of each label,
+#' \item "avg-recall" - Average of Recall of each label,
+#' \item "avg-precision" - Average of Precision of each label,
 #' \item "fscore" - Micro-Average of F-Score of each label,
 #' \item "recall" - Micro-Average of Recall of each label,
 #' \item "precision" - Micro-Average of Precision of each label
@@ -197,7 +200,7 @@ runClassifier <- function(trainingSet, validationSet, params, classifierAlgorith
         #check performance
         pred <- predict(model, yFeatures)
       }
-      perf <- length(which(pred==yClass))/length(pred)
+      perf <- evaluateMet(yClass, pred, metric = metric)
     }))
   )
   if(inherits(possibleError, "try-error")){
