@@ -5,7 +5,7 @@
 \title{Fit a classifier model.}
 \usage{
 runClassifier(trainingSet, validationSet, params, classifierAlgorithm,
-  interp = 0)
+  metric = "acc", interp = 0)
 }
 \arguments{
 \item{trainingSet}{Dataframe of the training set.}
@@ -25,13 +25,20 @@ runClassifier(trainingSet, validationSet, params, classifierAlgorithm,
 \item "bagging" - Bagging Classfier from ipred package,
 \item "knn" - K nearest Neighbors from FNN package,
 \item "nnet" - Simple neural net from nnet package,
-\item "fda" - Flexible discriminant Analysis from MDA package,
 \item "C50" - C50 decision tree from C5.0 pacakge,
 \item "rpart" - rpart decision tree from rpart package,
 \item "rda" - regularized discriminant analysis from klaR package,
 \item "plsda" - Partial Least Squares And Sparse Partial Least Squares Discriminant Analysis from caret package,
 \item "glm" - Fitting Generalized Linear Models from stats package,
 \item "deepboost" - deep boost classifier from deepboost package.
+}}
+
+\item{metric}{Metric to be used in evaluation:
+\itemize{
+\item "acc" - Accuracy,
+\item "fscore" - Micro-Average of F-Score of each label,
+\item "recall" - Micro-Average of Recall of each label,
+\item "precision" - Micro-Average of Precision of each label
 }}
 
 \item{interp}{Boolean representing if interpretability is required or not (Default = 0).}

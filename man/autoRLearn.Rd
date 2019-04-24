@@ -5,9 +5,10 @@
 \title{Run smartML function for automatic Supervised Machine Learning.}
 \usage{
 autoRLearn(maxTime, directory, testDirectory, classCol = "class",
-  selectedFeats = c(), vRatio = 0.1, preProcessF = "N",
-  featuresToPreProcess = c(), nComp = NA, nModels = 3, option = 2,
-  featureTypes = c(), interp = FALSE, missingOpr = FALSE)
+  metric = "acc", selectedFeats = c(), vRatio = 0.3,
+  preProcessF = "N", featuresToPreProcess = c(), nComp = NA,
+  nModels = 5, option = 2, featureTypes = c(), interp = FALSE,
+  missingOpr = FALSE)
 }
 \arguments{
 \item{maxTime}{Float of the maximum time budget for reading dataset, preprocessing, calculating meta-features, Algorithm Selection & hyper-parameter tuning process only in minutes(Excluding Model Interpretability) - This is applicable in case of Option = 2 only.}
@@ -17,6 +18,14 @@ autoRLearn(maxTime, directory, testDirectory, classCol = "class",
 \item{testDirectory}{String of the testing dataset directory (SmartML accepts file formats arff/(csv with columns headers) ).}
 
 \item{classCol}{String of the name of the class label column in the dataset (default = 'class').}
+
+\item{metric}{Metric to be used in evaluation:
+\itemize{
+\item "acc" - Accuracy,
+\item "fscore" - Micro-Average of F-Score of each label,
+\item "recall" - Micro-Average of Recall of each label,
+\item "precision" - Micro-Average of Precision of each label.
+}}
 
 \item{selectedFeats}{Vector of numbers of features columns to include from the training set and ignore the rest of columns - In case of empty vector, this means to include all features in the dataset file (default = c()).}
 
