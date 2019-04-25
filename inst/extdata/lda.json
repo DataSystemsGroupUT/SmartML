@@ -17,6 +17,9 @@
 		"constraint":"any",
 		"minVal":"-5",
 		"maxVal":"0",
-		"scale":"exp"
+		"scale":"exp",
+		"requires":
+		{
+		}
 	}
 }

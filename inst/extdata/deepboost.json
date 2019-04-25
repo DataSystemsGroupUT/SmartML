@@ -3,11 +3,11 @@
 	"parents":["tree_depth", "beta", "lambda", "loss_type", "num_iter"],
 	"num_iter":
 	{
-		"default":"1",
+		"default":"10",
 		"type":"continuous",
 		"scale":"int",
-		"minVal":"1",
-		"maxVal":"10",
+		"minVal":"5",
+		"maxVal":"50",
 		"constraint":"any",
 		"requires":
 		{
@@ -31,7 +31,10 @@
 		"type":"continuous",
 		"minVal":"0",
 		"maxVal":"1",
-		"scale":"double"
+		"scale":"double",
+		"requires":
+		{
+		}
 	},
 	"lambda":
 	{
@@ -39,7 +42,10 @@
 		"type":"continuous",
 		"minVal":"0",
 		"maxVal":"1",
-		"scale":"double"
+		"scale":"double",
+		"requires":
+		{
+		}
 	},
 	"loss_type":
 	{

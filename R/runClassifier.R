@@ -128,9 +128,8 @@ runClassifier <- function(trainingSet, validationSet, params, classifierAlgorith
       else if(classifierAlgorithm == 'lda'){
         params$tol <- (2 ^ as.numeric(params$tol))
         learn <- cbind(xClass, xFeatures)
-        model <- invisible(capture.output(suppressWarnings(lda(xFeatures, as.factor(xClass), tol = params$tol, method = params$method))))
-        pred <- MASS:::predict.lda(model, yFeatures)$class
-        print(pred)
+        invisible(capture.output(suppressWarnings(model <- lda(as.factor(xClass) ~., data = learn, tol = params$tol, method = params$method))))
+        pred <- predict(model, yFeatures)$class
       }
       else if(classifierAlgorithm == 'rpart'){
         params$minsplit <- as.numeric(params$minsplit)
@@ -150,7 +149,7 @@ runClassifier <- function(trainingSet, validationSet, params, classifierAlgorith
         else if(params$method == 'gen.ridge') m <- mda::gen.ridge
         else m <- mda::polyreg
         model <- fda(as.factor(xClass) ~., data = learn, dimension = params$dimension, method = m)
-        pred <- mda:::predict.fda(model, yFeatures)
+        pred <- predict(model, yFeatures)
       }
       else if(classifierAlgorithm == 'j48'){
         params$C <- as.numeric(params$C)
@@ -182,7 +181,7 @@ runClassifier <- function(trainingSet, validationSet, params, classifierAlgorith
         params$maxdepth <- as.numeric(params$maxdepth)
         learn <- cbind(xClass, xFeatures)
         model <- bagging(as.factor(xClass) ~., data = learn, nbagg = params$nbagg, control = rpart.control(minsplit = params$minsplit, cp = params$cp, xval = params$xval, maxdepth = params$maxdepth) )
-        pred <- predict(model, yFeatures, type="class")
+        pred <- predict(model, yFeatures, type = "class")
       }
       else if(classifierAlgorithm == 'deepboost'){
         learn <- cbind(xClass, xFeatures)
@@ -191,7 +190,7 @@ runClassifier <- function(trainingSet, validationSet, params, classifierAlgorith
         params$beta <- as.numeric(params$beta)
         params$lambda <- as.numeric(params$lambda)
         model <- deepboost(as.factor(xClass) ~., data = learn, num_iter = params$num_iter, beta = params$beta, lambda = params$lambda, loss_type = params$loss_type, verbose = FALSE)
-        pred <- deepboost:::predict(model, yFeatures)
+        pred <- deepboost.predict(model, yFeatures)
       }
       else if(classifierAlgorithm == 'rda'){
         params$gamma <- as.numeric(params$gamma)
@@ -203,21 +202,20 @@ runClassifier <- function(trainingSet, validationSet, params, classifierAlgorith
       else if(classifierAlgorithm == 'glm'){
         learn <- cbind(xClass, xFeatures)
         model <- glm(xClass ~., data = learn, family = params$family)
-        pred <- predict(model, yFeatures, type="response")
+        pred <- predict(model, yFeatures, type="terms")
       }
       else if(classifierAlgorithm == 'randomForest'){
         params$mtry <- as.numeric(params$mtry)
         params$ntree <- as.numeric(params$ntree)
         params$mtry <- min(params$mtry, ncol(xFeatures))
         model <- do.call(randomForest,c(list(x = xFeatures, y = as.factor(xClass)), params))
-        #check performance
         pred <- predict(model, yFeatures)
       }
       perf <- evaluateMet(yClass, pred, metric = metric)
     }))
   )
   if(inherits(possibleError, "try-error")){
-    print('Failed Run with current parameter configuration...Skipping')
+    print('Warning: Failed Run with current classifier.. Trying another paramter configuration.')
     return(list(perf = 0))
   }
   result <- list()

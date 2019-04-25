@@ -20,8 +20,8 @@
 #' @keywords internal
 
 getCandidateClassifiers <- function(maxTime, metaFeatures, nModels) {
-  classifiers <- c('randomForest', 'c50', 'j48', 'svm', 'naiveBayes','knn', 'bagging', 'rda', 'neuralnet', 'plsda', 'part', 'deepboost', 'rpart', 'lda', 'fda', 'lmt')
-  classifiersWt <- c(10, 20, 11, 21, 10, 5, 25, 5, 5, 6, 11, 21, 6, 5, 13, 10) #weight of each classifier to tune based on number and types of parameters
+  classifiers <- c('randomForest', 'c50', 'j48', 'svm', 'naiveBayes','knn', 'bagging', 'rda', 'neuralnet', 'plsda', 'part', 'deepboost', 'rpart', 'lda', 'lmt')
+  classifiersWt <- c(10, 20, 11, 21, 10, 5, 25, 5, 5, 6, 11, 21, 6, 5, 10) #weight of each classifier to tune based on number and types of parameters
 
   #Choosen Classifiers parameters initialization
   params <- c()
@@ -90,7 +90,7 @@ getCandidateClassifiers <- function(maxTime, metaFeatures, nModels) {
         clf <- bestClf[ind]
         if(is.element(clf, cclassifiers) == FALSE){
           #Exception for deep Boost requires binary classes dataset
-          if(clf == 'deepboost'  && nClasses > 2)
+          if((clf == 'deepboost'  && nClasses > 2)||clf == 'fda')
             next
           cclassifiers <- c(cclassifiers, clf)
           params <- c(params, bestClfParams[ind])
