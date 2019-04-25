@@ -215,16 +215,16 @@ autoRLearn <- function(maxTime, directory, testDirectory, classCol = 'class', me
       finalResult$clfs <- bestAlgorithm
       finalResult$params <- bestAlgorithmParams
       #save results to Temporary File
-      sendToTmp(metaFeatures, bestAlgorithm, bestAlgorithmParams, finalResult$perf, nModels, metric)
+      query <- sendToTmp(metaFeatures, bestAlgorithm, bestAlgorithmParams, finalResult$perf, nModels, metric)
+      #check internet connection and send data in tmp file to database if connection exists
+      if(checkInternet() == TRUE){
+        sendToDatabase(query)
+      }
     })
   if(inherits(trainFinalModelError, "try-error")){
     print('Error: No Enough Computational Resources. Can not build a model over the current dataset!')
   }
 
-  #check internet connection and send data in tmp file to database if connection exists
-  if(checkInternet() == TRUE){
-    sendToDatabase()
-  }
 
   finalResult$TRData = dataset$FULLTD
   finalResult$TEData = dataset$TED

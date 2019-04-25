@@ -56,7 +56,7 @@
 #' @importFrom  caret plsda
 #' @importFrom  stats glm predict
 #' @importFrom  nnet nnet
-#' @importFrom  deepboost deepboost
+#' @importFrom  deepboost deepboost deepboost.predict
 #' @importFrom  utils capture.output
 #' @importFrom  mda fda mars bruto gen.ridge polyreg
 #'
