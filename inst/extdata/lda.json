@@ -12,11 +12,11 @@
 	},
 	"tol":
 	{
-		"default":"-8",
+		"default":"-4",
 		"type":"continuous",
 		"constraint":"any",
-		"minVal":"-12",
-		"maxVal":"-5",
+		"minVal":"-5",
+		"maxVal":"0",
 		"scale":"exp"
 	}
 }

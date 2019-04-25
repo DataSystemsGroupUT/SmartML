@@ -12,9 +12,9 @@ runClassifier(trainingSet, validationSet, params, classifierAlgorithm,
 
 \item{validationSet}{Dataframe of the validation Set.}
 
-\item{params}{A string of parameter configuration values for the current classifier to be tuned (parameters are separated by #) and can be obtained from \code{params} out of resulted list after running \code{autoRLearn} function.}
+\item{params}{A string character of parameter configuration values for the current classifier to be tuned (parameters are separated by #) and can be obtained from \code{params} out of resulted list after running \code{autoRLearn} function.}
 
-\item{classifierAlgorithm}{String of the name of classifier algorithm used now.
+\item{classifierAlgorithm}{String character of the name of classifier algorithm used now.
 \itemize{
 \item "svm" - Support Vector Machines from e1071 package,
 \item "naiveBayes" - naiveBayes from e1071 package,
@@ -33,7 +33,7 @@ runClassifier(trainingSet, validationSet, params, classifierAlgorithm,
 \item "deepboost" - deep boost classifier from deepboost package.
 }}
 
-\item{metric}{Metric to be used in evaluation:
+\item{metric}{Metric string character to be used in evaluation:
 \itemize{
 \item "acc" - Accuracy,
 \item "avg-fscore" - Average of F-Score of each label,

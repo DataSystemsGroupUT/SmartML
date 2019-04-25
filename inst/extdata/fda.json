@@ -3,11 +3,11 @@
 	"parents":["method", "dimension"],
 	"dimension":
 	{
-		"default":"1",
+		"default":"2",
 		"type":"continuous",
 		"scale":"int",
 		"minVal":"1",
-		"maxVal":"20",
+		"maxVal":"5",
 		"constraint":"any",
 		"requires":
 		{

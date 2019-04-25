@@ -27,7 +27,7 @@
 #'
 #' @keywords internal
 
-readDataset <- function(directory, testDirectory, vRatio = 0.1, selectedFeats, classCol, preProcessF, featuresToPreProcess, nComp, missingOpr) {
+readDataset <- function(directory, testDirectory, vRatio = 0.3, selectedFeats, classCol, preProcessF, featuresToPreProcess, nComp, missingOpr) {
   #check if CSV or arff
   ext <- substr(directory, nchar(directory)-2, nchar(directory))
   #Read CSV file of data
@@ -48,6 +48,17 @@ readDataset <- function(directory, testDirectory, vRatio = 0.1, selectedFeats, c
   colnames(data)[which(names(data) == classCol)] <- "class"
   colnames(dataTED)[which(names(dataTED) == classCol)] <- "class"
   cInd <- grep("class", colnames(data)) #index of class column
+
+  #function which returns function which will encode vectors with values of class column labels
+  label_encoder <- function(vec){
+    levels <- sort(unique(vec))
+    function(x){
+      match(x, levels)
+    }
+  }
+  classEncoder <- label_encoder(data$class) # create class encoder
+  data$class <- classEncoder(data$class) # encoding class labels of training set
+  dataTED$class <- classEncoder(dataTED$class) # encoding class labels of testing set
 
   #check either to delete instance with missing values or perform imputation
   if (missingOpr == FALSE){

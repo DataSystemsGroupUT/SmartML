@@ -34,6 +34,7 @@ Imports:
   rpart,
   ipred,
   C50,
+  mda,
   MASS,
   nnet,
   deepboost,

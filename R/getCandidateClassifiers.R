@@ -20,13 +20,13 @@
 #' @keywords internal
 
 getCandidateClassifiers <- function(maxTime, metaFeatures, nModels) {
-  classifiers <- c('randomForest', 'c50', 'j48', 'deepboost', 'svm', 'naiveBayes','knn', 'bagging', 'neuralnet', 'plsda', 'part', 'rpart', 'lda', 'lmt', 'rda')
-  classifiersWt <- c(10, 20, 11, 21, 21, 10, 5, 25, 5, 6, 11, 6, 5, 10, 5) #weight of each classifier to tune based on number and types of parameters
+  classifiers <- c('randomForest', 'c50', 'j48', 'svm', 'naiveBayes','knn', 'bagging', 'rda', 'neuralnet', 'plsda', 'part', 'deepboost', 'rpart', 'lda', 'fda', 'lmt')
+  classifiersWt <- c(10, 20, 11, 21, 10, 5, 25, 5, 5, 6, 11, 21, 6, 5, 13, 10) #weight of each classifier to tune based on number and types of parameters
 
   #Choosen Classifiers parameters initialization
   params <- c()
   cclassifiers <- c() #chosen classifiers
-
+  ratio <- c() #time ratios for each classifier
   for(trial in 1:3){ #TRY to connect to knowledge base
     readKnowledgeBase <- try(
     {
@@ -55,7 +55,7 @@ getCandidateClassifiers <- function(maxTime, metaFeatures, nModels) {
       metaDataFeatures <- rbind(metaDataFeatures, metaFeatures)
 
       #Normalize the distance matrix
-      metaDataFeatures[] <- lapply(metaDataFeatures, function(x) as.numeric(as.character(x)))
+      metaDataFeatures[] <- suppressWarnings(lapply(metaDataFeatures, function(x) as.numeric(as.character(x))))
       metaDataFeatures <- normalize(metaDataFeatures, method = "standardize", range = c(0, 1), margin = 1L, on.constant = "quiet")
 
       #Construct the distance list to extract the nearest neighbors
@@ -74,7 +74,7 @@ getCandidateClassifiers <- function(maxTime, metaFeatures, nModels) {
             dist <- dist + 0.5
 
           else
-            dist <- dist + (as.numeric(metaDataFeatures[i,j]) - as.numeric(metaDataFeatures[cntMeta, j]))^2
+            dist <- dist + (suppressWarnings(as.numeric(metaDataFeatures[i,j])) - suppressWarnings(as.numeric(metaDataFeatures[cntMeta, j])) )^2
 
         }
         tmpDist <- list(dist = dist, index = i)
@@ -90,10 +90,13 @@ getCandidateClassifiers <- function(maxTime, metaFeatures, nModels) {
         clf <- bestClf[ind]
         if(is.element(clf, cclassifiers) == FALSE){
           #Exception for deep Boost requires binary classes dataset
-          if((clf == 'deepboost' && nClasses > 2) || clf == 'fda')
+          if(clf == 'deepboost'  && nClasses > 2)
             next
           cclassifiers <- c(cclassifiers, clf)
           params <- c(params, bestClfParams[ind])
+
+          clfInd = which(classifiers == clf)
+          ratio <- c(ratio, classifiersWt[clfInd])
         }
         if(length(cclassifiers) == nModels)
           break
@@ -102,24 +105,27 @@ getCandidateClassifiers <- function(maxTime, metaFeatures, nModels) {
     if(inherits(readKnowledgeBase, "try-error")){
       KBFlag <- FALSE
       print('Warning: Can not connect to KnowledgeBase Data! Check your internet connectivity.
-              Assuming All Classifiers will be used. You should use Large Time Budgets for better results.')
+              Assuming Random Classifiers will be used. You should use Large Time Budgets and nModels for better results.')
     }
 
     if(KBFlag == TRUE) #managed to get information from knowledge base
       break
   }
   #Assign time ratio for each classifier
-  sum <- 0
-  ratio <- c()
-  if (length(cclassifiers) == 0)
-    cclassifiers <- classifiers #failed to make use of meta-learning --> tune over all classifiers
-
-  for (c in cclassifiers){
-    ind = which(cclassifiers == c)
-    sum <- sum + classifiersWt[ind]
-    ratio <- c(ratio, classifiersWt[ind])
+  if (length(cclassifiers) < nModels){ #failed to make use of meta-learning --> tune over all classifiers
+    #cclassifiers <- classifiers
+    for (clf in classifiers){
+      if(is.element(clf, cclassifiers) == TRUE) #already inserted this classifier
+        next
+      ind = which(classifiers == clf)
+      ratio <- c(ratio, classifiersWt[ind])
+      cclassifiers <- c(cclassifiers, clf)
+      params <- c(params, '')
+      if(length(cclassifiers) == nModels) #completed number of required models
+        break
+    }
   }
-  ratio <- ratio / sum * (maxTime * 0.9) #Only using 90% of the allowed time budget
+  ratio <- ratio / sum(ratio) * (maxTime * 0.9) #Only using 90% of the allowed time budget
 
   return (list(c = cclassifiers, r = ratio, p = params))
 }

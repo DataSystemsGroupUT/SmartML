@@ -2,13 +2,13 @@
 #'
 #' @description Run the smartML main function for automatic classifier algorithm selection, and hyper-parameter tuning.
 #'
-#' @param maxTime Float of the maximum time budget for reading dataset, preprocessing, calculating meta-features, Algorithm Selection & hyper-parameter tuning process only in minutes(Excluding Model Interpretability) - This is applicable in case of Option = 2 only.
-#' @param directory String of the training dataset directory (SmartML accepts file formats arff/(csv with columns headers) ).
-#' @param testDirectory String of the testing dataset directory (SmartML accepts file formats arff/(csv with columns headers) ).
-#' @param classCol String of the name of the class label column in the dataset (default = 'class').
-#' @param selectedFeats Vector of numbers of features columns to include from the training set and ignore the rest of columns - In case of empty vector, this means to include all features in the dataset file (default = c()).
-#' @param vRatio Float of the validation set ratio that should be splitted out of the training set for the evaluation process (default = 0.1 --> 10\%).
-#' @param preProcessF string containing the name of the preprocessing algorithm (default = 'N' --> no preprocessing):
+#' @param maxTime Float numeric of the maximum time budget for reading dataset, preprocessing, calculating meta-features, Algorithm Selection & hyper-parameter tuning process only in minutes(Excluding Model Interpretability) - This is applicable in case of Option = 2 only.
+#' @param directory String Character of the training dataset directory (SmartML accepts file formats arff/(csv with columns headers) ).
+#' @param testDirectory String Character of the testing dataset directory (SmartML accepts file formats arff/(csv with columns headers) ).
+#' @param classCol String Character of the name of the class label column in the dataset (default = 'class').
+#' @param selectedFeats Vector of numeric of features columns to include from the training set and ignore the rest of columns - In case of empty vector, this means to include all features in the dataset file (default = c()).
+#' @param vRatio Float numeric of the validation set ratio that should be splitted out of the training set for the evaluation process (default = 0.1 --> 10\%).
+#' @param preProcessF String Character containing the name of the preprocessing algorithm (default = 'N' --> no preprocessing):
 #' \itemize{
 #' \item "boxcox" - apply a Box–Cox transform and values must be non-zero and positive in all features,
 #' \item "yeo-Johnson" - apply a Yeo-Johnson transform, like a BoxCox, but values can be negative,
@@ -21,13 +21,13 @@
 #' \item "ica" - transform data to the independent components.
 #' }
 #' @param featuresToPreProcess Vector of number of features to perform the feature preprocessing on - In case of empty vector, this means to include all features in the dataset file (default = c()) - This vector should be a subset of \code{selectedFeats}.
-#' @param nComp Integer of Number of components needed if either "pca" or "ica" feature preprocessors are needed.
-#' @param nModels Integer representing the number of classifier algorithms that you want to select based on Meta-Learning and start to tune using Bayesian Optimization (default = 3).
-#' @param option Integer representing either Classifier Algorithm Selection is needed only = 1 or Algorithm selection with its parameter tuning is required = 2 which is the default value.
+#' @param nComp Integer numeric of Number of components needed if either "pca" or "ica" feature preprocessors are needed.
+#' @param nModels Integer numeric representing the number of classifier algorithms that you want to select based on Meta-Learning and start to tune using Bayesian Optimization (default = 5).
+#' @param option Integer numeric representing either Classifier Algorithm Selection is needed only = 1 or Algorithm selection with its parameter tuning is required = 2 which is the default value.
 #' @param featureTypes Vector of either 'numerical' or 'categorical' representing the types of features in the dataset (default = c() --> any factor or character features will be considered as categorical otherwise numerical).
 #' @param interp Boolean representing if model interpretability (Feature Importance and Interaction) is needed or not (default = FALSE) This option will take more time budget if set to 1.
 #' @param missingOpr Boolean variable represents either delete instances with missing values or apply imputation using "MICE" library which helps you imputing missing values with plausible data values that are drawn from a distribution specifically designed for each missing datapoint- (default = FALSE to delete instances).
-#' @param metric Metric to be used in evaluation:
+#' @param metric Metric of string character to be used in evaluation:
 #' \itemize{
 #' \item "acc" - Accuracy,
 #' \item "avg-fscore" - Average of F-Score of each label,
@@ -115,7 +115,8 @@ autoRLearn <- function(maxTime, directory, testDirectory, classCol = 'class', me
     algorithmsParams <- output$p #Initial Parameter configuration of each classifier.
   })
   if(inherits(candidateClfsError, "try-error")){
-    print('Warning: Failed to connect to knowledge base to generate Candidate classifiers.')
+    print('Error: Can not generate Candidate classifiers.')
+    return(-1)
   }
 
   tryCatch({
@@ -161,9 +162,9 @@ autoRLearn <- function(maxTime, directory, testDirectory, classCol = 'class', me
           #Fit Model
           output <- fitModel(bestParams, bestPerf, trainingSet, validationSet, foldedSet, classifierAlgorithm, tree, B = B)
           #Check if this classifer failed for more than 5 times, skip to the next classifier
-          if(length(bestPerf) > 0 && mean(bestPerf) == 0){
+          if((length(bestPerf) > 0 && mean(bestPerf) == 0) || length(bestPerf) == 0){
             classifierFailureCounter <- classifierFailureCounter + 1
-            if(classifierFailureCounter > 4) break
+            if(classifierFailureCounter > 2) break
           }
           tree <- output$t
           bestPerf <- output$p
@@ -194,7 +195,7 @@ autoRLearn <- function(maxTime, directory, testDirectory, classCol = 'class', me
         }
       }
 
-    }, timeout = maxTime * 60)
+    },timeout = maxTime * 60, cpu = maxTime * 60)
   }, TimeoutException = function(ex) {
     message("NOTE: Time Budget allowed has been finished.")
   })

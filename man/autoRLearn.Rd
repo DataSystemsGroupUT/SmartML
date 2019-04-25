@@ -11,15 +11,15 @@ autoRLearn(maxTime, directory, testDirectory, classCol = "class",
   missingOpr = FALSE)
 }
 \arguments{
-\item{maxTime}{Float of the maximum time budget for reading dataset, preprocessing, calculating meta-features, Algorithm Selection & hyper-parameter tuning process only in minutes(Excluding Model Interpretability) - This is applicable in case of Option = 2 only.}
+\item{maxTime}{Float numeric of the maximum time budget for reading dataset, preprocessing, calculating meta-features, Algorithm Selection & hyper-parameter tuning process only in minutes(Excluding Model Interpretability) - This is applicable in case of Option = 2 only.}
 
-\item{directory}{String of the training dataset directory (SmartML accepts file formats arff/(csv with columns headers) ).}
+\item{directory}{String Character of the training dataset directory (SmartML accepts file formats arff/(csv with columns headers) ).}
 
-\item{testDirectory}{String of the testing dataset directory (SmartML accepts file formats arff/(csv with columns headers) ).}
+\item{testDirectory}{String Character of the testing dataset directory (SmartML accepts file formats arff/(csv with columns headers) ).}
 
-\item{classCol}{String of the name of the class label column in the dataset (default = 'class').}
+\item{classCol}{String Character of the name of the class label column in the dataset (default = 'class').}
 
-\item{metric}{Metric to be used in evaluation:
+\item{metric}{Metric of string character to be used in evaluation:
 \itemize{
 \item "acc" - Accuracy,
 \item "avg-fscore" - Average of F-Score of each label,
@@ -30,11 +30,11 @@ autoRLearn(maxTime, directory, testDirectory, classCol = "class",
 \item "precision" - Micro-Average of Precision of each label.
 }}
 
-\item{selectedFeats}{Vector of numbers of features columns to include from the training set and ignore the rest of columns - In case of empty vector, this means to include all features in the dataset file (default = c()).}
+\item{selectedFeats}{Vector of numeric of features columns to include from the training set and ignore the rest of columns - In case of empty vector, this means to include all features in the dataset file (default = c()).}
 
-\item{vRatio}{Float of the validation set ratio that should be splitted out of the training set for the evaluation process (default = 0.1 --> 10\%).}
+\item{vRatio}{Float numeric of the validation set ratio that should be splitted out of the training set for the evaluation process (default = 0.1 --> 10\%).}
 
-\item{preProcessF}{string containing the name of the preprocessing algorithm (default = 'N' --> no preprocessing):
+\item{preProcessF}{String Character containing the name of the preprocessing algorithm (default = 'N' --> no preprocessing):
 \itemize{
 \item "boxcox" - apply a Box–Cox transform and values must be non-zero and positive in all features,
 \item "yeo-Johnson" - apply a Yeo-Johnson transform, like a BoxCox, but values can be negative,
@@ -49,11 +49,11 @@ autoRLearn(maxTime, directory, testDirectory, classCol = "class",
 
 \item{featuresToPreProcess}{Vector of number of features to perform the feature preprocessing on - In case of empty vector, this means to include all features in the dataset file (default = c()) - This vector should be a subset of \code{selectedFeats}.}
 
-\item{nComp}{Integer of Number of components needed if either "pca" or "ica" feature preprocessors are needed.}
+\item{nComp}{Integer numeric of Number of components needed if either "pca" or "ica" feature preprocessors are needed.}
 
-\item{nModels}{Integer representing the number of classifier algorithms that you want to select based on Meta-Learning and start to tune using Bayesian Optimization (default = 3).}
+\item{nModels}{Integer numeric representing the number of classifier algorithms that you want to select based on Meta-Learning and start to tune using Bayesian Optimization (default = 5).}
 
-\item{option}{Integer representing either Classifier Algorithm Selection is needed only = 1 or Algorithm selection with its parameter tuning is required = 2 which is the default value.}
+\item{option}{Integer numeric representing either Classifier Algorithm Selection is needed only = 1 or Algorithm selection with its parameter tuning is required = 2 which is the default value.}
 
 \item{featureTypes}{Vector of either 'numerical' or 'categorical' representing the types of features in the dataset (default = c() --> any factor or character features will be considered as categorical otherwise numerical).}
 

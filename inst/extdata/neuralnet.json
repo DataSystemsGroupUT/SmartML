@@ -5,9 +5,9 @@
 	{
 		"type":"continuous",
 		"scale":"int",
-		"minVal":"1",
-		"maxVal":"8",
-		"default":"2",
+		"minVal":"2",
+		"maxVal":"20",
+		"default":"5",
 		"constraint":"any",
 		"requires":
 		{

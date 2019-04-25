@@ -4,8 +4,8 @@
 #'
 #' @param trainingSet Dataframe of the training set.
 #' @param validationSet Dataframe of the validation Set.
-#' @param params A string of parameter configuration values for the current classifier to be tuned (parameters are separated by #) and can be obtained from \code{params} out of resulted list after running \code{autoRLearn} function.
-#' @param classifierAlgorithm String of the name of classifier algorithm used now.
+#' @param params A string character of parameter configuration values for the current classifier to be tuned (parameters are separated by #) and can be obtained from \code{params} out of resulted list after running \code{autoRLearn} function.
+#' @param classifierAlgorithm String character of the name of classifier algorithm used now.
 #' \itemize{
 #' \item "svm" - Support Vector Machines from e1071 package,
 #' \item "naiveBayes" - naiveBayes from e1071 package,
@@ -23,7 +23,7 @@
 #' \item "glm" - Fitting Generalized Linear Models from stats package,
 #' \item "deepboost" - deep boost classifier from deepboost package.
 #' }
-#' @param metric Metric to be used in evaluation:
+#' @param metric Metric string character to be used in evaluation:
 #' \itemize{
 #' \item "acc" - Accuracy,
 #' \item "avg-fscore" - Average of F-Score of each label,
@@ -58,6 +58,7 @@
 #' @importFrom  nnet nnet
 #' @importFrom  deepboost deepboost
 #' @importFrom  utils capture.output
+#' @importFrom  mda fda mars bruto gen.ridge polyreg
 #'
 #' @export runClassifier
 
@@ -127,8 +128,9 @@ runClassifier <- function(trainingSet, validationSet, params, classifierAlgorith
       else if(classifierAlgorithm == 'lda'){
         params$tol <- (2 ^ as.numeric(params$tol))
         learn <- cbind(xClass, xFeatures)
-        model <- invisible(capture.output(lda(as.factor(xClass) ~., data = learn, tol = params$tol, method = params$method)))
-        pred <- predict(model, yFeatures)$class
+        model <- invisible(capture.output(suppressWarnings(lda(xFeatures, as.factor(xClass), tol = params$tol, method = params$method))))
+        pred <- MASS:::predict.lda(model, yFeatures)$class
+        print(pred)
       }
       else if(classifierAlgorithm == 'rpart'){
         params$minsplit <- as.numeric(params$minsplit)
@@ -138,6 +140,17 @@ runClassifier <- function(trainingSet, validationSet, params, classifierAlgorith
         learn <- cbind(xClass, xFeatures)
         model <- rpart(as.factor(xClass) ~., data = learn, control = rpart.control(minsplit = params$minsplit, maxdepth = params$maxdepth, xval = params$xval, cp = params$cp) )
         pred <- predict(model, yFeatures)
+      }
+      else if(classifierAlgorithm == 'fda'){
+        learn <- cbind(xClass, xFeatures)
+        params$dimension <- as.numeric(params$dimension)
+        params$dimension <- min(params$dimension, length(unique(xClass))-1)
+        if (params$method == 'mars')m <- mda::mars
+        else if(params$method == 'bruto') m <- mda::bruto
+        else if(params$method == 'gen.ridge') m <- mda::gen.ridge
+        else m <- mda::polyreg
+        model <- fda(as.factor(xClass) ~., data = learn, dimension = params$dimension, method = m)
+        pred <- mda:::predict.fda(model, yFeatures)
       }
       else if(classifierAlgorithm == 'j48'){
         params$C <- as.numeric(params$C)
@@ -178,7 +191,7 @@ runClassifier <- function(trainingSet, validationSet, params, classifierAlgorith
         params$beta <- as.numeric(params$beta)
         params$lambda <- as.numeric(params$lambda)
         model <- deepboost(as.factor(xClass) ~., data = learn, num_iter = params$num_iter, beta = params$beta, lambda = params$lambda, loss_type = params$loss_type, verbose = FALSE)
-        pred <- predict(model, yFeatures)
+        pred <- deepboost:::predict(model, yFeatures)
       }
       else if(classifierAlgorithm == 'rda'){
         params$gamma <- as.numeric(params$gamma)
