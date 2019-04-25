@@ -21,11 +21,11 @@ sendToDatabase <- function(){
   #Update knowledge base
   updateKB <- try(
     {
-      tmp <- paste(readLines("tmp"), collapse="\n")
+      tmp <- paste(readLines(system.file("extdata", "tmp", package = "SmartML", mustWork = TRUE)), collapse="\n")
       res <- POST("https://jncvt2k156.execute-api.eu-west-1.amazonaws.com/default/s3-trigger-rautoml", body = list(data = paste(tmp, "&DATA&", sep=""),
                                                                                                                    fName = paste(cntIP,".csv&FILENAME&", sep=""),
                                                                                                                    encode = "json"))
-      write("",file="tmp") #Empty the tmp file
+      write("", file=system.file("extdata", "tmp", package = "SmartML", mustWork = TRUE),append=TRUE) #Empty the tmp file
     })
   if(inherits(updateKB, "try-error"))
     print('Failed to update Knowledge base.')

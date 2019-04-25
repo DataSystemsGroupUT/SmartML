@@ -34,5 +34,5 @@ sendToTmp <- function(df, algorithmName, bestParams, perf, nModels, metric = 'ac
                    df$classProbMean, df$classProbMax, df$classProbMin, df$classEntropy, df$ratioNumToCat, df$nCatFeatures, df$nNumFeatures,
                    df$nInstances, df$nFeatures, df$nClasses, df$lognFeatures, df$lognInstances, df$classifierAlgorithm, df$params, df$maxTime, metric,
                    df$performance, nModels)
-  write(query,file="tmp",append=TRUE)
+  write(query, file=system.file("extdata", "tmp", package = "SmartML", mustWork = TRUE),append=TRUE)
 }
