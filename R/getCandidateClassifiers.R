@@ -27,6 +27,7 @@ getCandidateClassifiers <- function(maxTime, metaFeatures, nModels) {
   params <- c()
   cclassifiers <- c() #chosen classifiers
   ratio <- c() #time ratios for each classifier
+  KBFlag <- FALSE
   for(trial in 1:3){ #TRY to connect to knowledge base
     readKnowledgeBase <- try(
     {
@@ -104,13 +105,16 @@ getCandidateClassifiers <- function(maxTime, metaFeatures, nModels) {
     })
     if(inherits(readKnowledgeBase, "try-error")){
       KBFlag <- FALSE
-      print('Warning: Can not connect to KnowledgeBase Data! Check your internet connectivity.
-              Assuming Random Classifiers will be used. You should use Large Time Budgets and nModels for better results.')
+      print('Warning: Can not connect to KnowledgeBase Data! Check your internet connectivity. Trying Again.')
+      next
     }
 
     if(KBFlag == TRUE) #managed to get information from knowledge base
       break
   }
+
+  if(KBFlag == FALSE)
+    print('Assuming Random Classifiers will be used. You should use Large Time Budgets and nModels for better results')
   #Assign time ratio for each classifier
   if (length(cclassifiers) < nModels){ #failed to make use of meta-learning --> tune over all classifiers
     #cclassifiers <- classifiers
