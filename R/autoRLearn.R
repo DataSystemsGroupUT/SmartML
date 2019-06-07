@@ -6,9 +6,8 @@
 #' @param directory String Character of the training dataset directory (SmartML accepts file formats arff/(csv with columns headers) ).
 #' @param testDirectory String Character of the testing dataset directory (SmartML accepts file formats arff/(csv with columns headers) ).
 #' @param classCol String Character of the name of the class label column in the dataset (default = 'class').
-#' @param selectedFeats Vector of numeric of features columns to include from the training set and ignore the rest of columns - In case of empty vector, this means to include all features in the dataset file (default = c()).
 #' @param vRatio Float numeric of the validation set ratio that should be splitted out of the training set for the evaluation process (default = 0.1 --> 10\%).
-#' @param preProcessF String Character containing the name of the preprocessing algorithm (default = 'N' --> no preprocessing):
+#' @param preProcessF vector of string Character containing the name of the preprocessing algorithms (default = c('standardize', 'zv') --> no preprocessing):
 #' \itemize{
 #' \item "boxcox" - apply a Box–Cox transform and values must be non-zero and positive in all features,
 #' \item "yeo-Johnson" - apply a Yeo-Johnson transform, like a BoxCox, but values can be negative,
@@ -26,7 +25,8 @@
 #' @param option Integer numeric representing either Classifier Algorithm Selection is needed only = 1 or Algorithm selection with its parameter tuning is required = 2 which is the default value.
 #' @param featureTypes Vector of either 'numerical' or 'categorical' representing the types of features in the dataset (default = c() --> any factor or character features will be considered as categorical otherwise numerical).
 #' @param interp Boolean representing if model interpretability (Feature Importance and Interaction) is needed or not (default = FALSE) This option will take more time budget if set to 1.
-#' @param missingOpr Boolean variable represents either delete instances with missing values or apply imputation using "MICE" library which helps you imputing missing values with plausible data values that are drawn from a distribution specifically designed for each missing datapoint- (default = FALSE to delete instances).
+#' @param missingOpr Boolean variable represents either use median/mode imputation for instances with missing values (FALSE) or apply imputation using "MICE" library which helps you imputing missing values with plausible data values that are drawn from a distribution specifically designed for each missing datapoint (TRUE).
+#' @param balance Boolean variable represents if SMOTE class balancing is required or not (default FALSE).
 #' @param metric Metric of string character to be used in evaluation:
 #' \itemize{
 #' \item "acc" - Accuracy,
@@ -59,12 +59,14 @@
 #'
 #' @export autoRLearn
 
-autoRLearn <- function(maxTime, directory, testDirectory, classCol = 'class', metric = 'acc', selectedFeats = c(), vRatio = 0.3, preProcessF = 'N', featuresToPreProcess = c(), nComp = NA, nModels = 5, option = 2, featureTypes = c(), interp = FALSE, missingOpr = FALSE) {
+autoRLearn <- function(maxTime, directory, testDirectory, classCol = 'class', metric = 'acc', vRatio = 0.3, preProcessF = c('standardize', 'zv'), featuresToPreProcess = c(), nComp = NA, nModels = 5, option = 2, featureTypes = c(), interp = FALSE, missingOpr = FALSE, balance = FALSE) {
+  #Set Seed
+  set.seed(22)
   #Read Dataset
   datasetReadError <- try(
   {
     #Read Training Dataset
-    dataset <- readDataset(directory, testDirectory, selectedFeats = selectedFeats, classCol = classCol, vRatio = vRatio, preProcessF = preProcessF, featuresToPreProcess = featuresToPreProcess, nComp = nComp, missingOpr = missingOpr)
+    dataset <- readDataset(directory, testDirectory, classCol = classCol, vRatio = vRatio, preProcessF = preProcessF, featuresToPreProcess = featuresToPreProcess, nComp = nComp, missingOpr = missingOpr, metric = metric, balance = balance)
     trainingSet <- dataset$TD
     #Read Testing Dataset
     testDataset <- dataset$TED
@@ -159,6 +161,7 @@ autoRLearn <- function(maxTime, directory, testDirectory, classCol = 'class', me
         classifierFailureCounter <- 0
 
         repeat{
+          gc()
           #Fit Model
           output <- fitModel(bestParams, bestPerf, trainingSet, validationSet, foldedSet, classifierAlgorithm, tree, B = B)
           #Check if this classifer failed for more than 5 times, skip to the next classifier
@@ -177,6 +180,7 @@ autoRLearn <- function(maxTime, directory, testDirectory, classCol = 'class', me
             bestParams <- output$params
             bestPerf <- output$perf
             timeTillNow <- output$timeTillNow
+            classifierFailureCounter <- classifierFailureCounter + output$fails
             R <- output$r
           }
           #Check if execution time exceeded the allowed time or not
@@ -188,6 +192,7 @@ autoRLearn <- function(maxTime, directory, testDirectory, classCol = 'class', me
               bestAlgorithmPerf <- bestPerf
               bestAlgorithm <- classifierAlgorithm
               bestAlgorithmParams <- bestParams
+              cat('Best Classifier:', bestAlgorithm, ' --> Performance:', bestAlgorithmPerf, '\n')
             }
             break
           }

@@ -15,6 +15,8 @@
 #' \item "precision" - Micro-Average of Precision of each label.
 #' }
 #'
+#' @importFrom  caret confusionMatrix
+#'
 #' @return Float number representing the evaluation.
 #'
 #' @examples
@@ -27,13 +29,14 @@
 #' @keywords internal
 #'
 evaluateMet <- function(yTrue, pred, metric = 'acc'){
-  cm = as.matrix(table(Actual = yTrue, Predicted = pred)) # create the confusion matrix
+  lvls <- union(pred, yTrue)
+  cm = as.matrix(table(Actual = factor(yTrue, lvls),
+                       Predicted = factor(pred, lvls)) ) # create the confusion matrix
   n = sum(cm) # number of instances
   nc = nrow(cm) # number of classes
   diag = diag(cm) # number of correctly classified instances per class
   rowsums = apply(cm, 1, sum) # number of instances per class
   colsums = apply(cm, 2, sum) # number of predictions per class
-
   oneVsAll = lapply(1 : nc,
                     function(i){
                       v = c(cm[i,i],
@@ -41,7 +44,6 @@ evaluateMet <- function(yTrue, pred, metric = 'acc'){
                             colsums[i] - cm[i,i],
                             n-rowsums[i] - colsums[i] + cm[i,i]);
                       return(matrix(v, nrow = 2, byrow = T))})
-
   s = matrix(0, nrow = 2, ncol = 2)
   for(i in 1 : nc){s = s + oneVsAll[[i]]}
 
@@ -64,7 +66,7 @@ evaluateMet <- function(yTrue, pred, metric = 'acc'){
   }
   else{
     perf <- (diag(s) / apply(s,1, sum))[1];
-
   }
+
   return(perf)
 }

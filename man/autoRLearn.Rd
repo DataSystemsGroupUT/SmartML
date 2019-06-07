@@ -5,10 +5,10 @@
 \title{Run smartML function for automatic Supervised Machine Learning.}
 \usage{
 autoRLearn(maxTime, directory, testDirectory, classCol = "class",
-  metric = "acc", selectedFeats = c(), vRatio = 0.3,
-  preProcessF = "N", featuresToPreProcess = c(), nComp = NA,
-  nModels = 5, option = 2, featureTypes = c(), interp = FALSE,
-  missingOpr = FALSE)
+  metric = "acc", vRatio = 0.3, preProcessF = c("standardize", "zv"),
+  featuresToPreProcess = c(), nComp = NA, nModels = 5, option = 2,
+  featureTypes = c(), interp = FALSE, missingOpr = FALSE,
+  balance = FALSE)
 }
 \arguments{
 \item{maxTime}{Float numeric of the maximum time budget for reading dataset, preprocessing, calculating meta-features, Algorithm Selection & hyper-parameter tuning process only in minutes(Excluding Model Interpretability) - This is applicable in case of Option = 2 only.}
@@ -30,11 +30,9 @@ autoRLearn(maxTime, directory, testDirectory, classCol = "class",
 \item "precision" - Micro-Average of Precision of each label.
 }}
 
-\item{selectedFeats}{Vector of numeric of features columns to include from the training set and ignore the rest of columns - In case of empty vector, this means to include all features in the dataset file (default = c()).}
-
 \item{vRatio}{Float numeric of the validation set ratio that should be splitted out of the training set for the evaluation process (default = 0.1 --> 10\%).}
 
-\item{preProcessF}{String Character containing the name of the preprocessing algorithm (default = 'N' --> no preprocessing):
+\item{preProcessF}{vector of string Character containing the name of the preprocessing algorithms (default = c('standardize', 'zv') --> no preprocessing):
 \itemize{
 \item "boxcox" - apply a Box–Cox transform and values must be non-zero and positive in all features,
 \item "yeo-Johnson" - apply a Yeo-Johnson transform, like a BoxCox, but values can be negative,
@@ -59,7 +57,9 @@ autoRLearn(maxTime, directory, testDirectory, classCol = "class",
 
 \item{interp}{Boolean representing if model interpretability (Feature Importance and Interaction) is needed or not (default = FALSE) This option will take more time budget if set to 1.}
 
-\item{missingOpr}{Boolean variable represents either delete instances with missing values or apply imputation using "MICE" library which helps you imputing missing values with plausible data values that are drawn from a distribution specifically designed for each missing datapoint- (default = FALSE to delete instances).}
+\item{missingOpr}{Boolean variable represents either use median/mode imputation for instances with missing values (FALSE) or apply imputation using "MICE" library which helps you imputing missing values with plausible data values that are drawn from a distribution specifically designed for each missing datapoint (TRUE).}
+
+\item{balance}{Boolean variable represents if SMOTE class balancing is required or not (default FALSE).}
 }
 \value{
 List of Results

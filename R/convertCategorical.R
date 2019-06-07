@@ -20,7 +20,7 @@
 
 convertCategorical <- function(dataset, trainDataset, testDataset, B = 10) {
   #Convert Factor/String Features into numeric features
-  dmy <- caret::dummyVars(" ~ .", data = trainDataset[,names(trainDataset) != "class"])
+  dmy <- caret::dummyVars(" ~ .", data = rbind(trainDataset, testDataset)[,names(trainDataset) != "class"])
   datasetTmp <- data.frame(predict(dmy, newdata = dataset$TD))
   dataset$FULLTD <- data.frame(predict(dmy, newdata = trainDataset))
   dataset$TED <- data.frame(predict(dmy, newdata = testDataset))
@@ -31,7 +31,6 @@ convertCategorical <- function(dataset, trainDataset, testDataset, B = 10) {
   dataset$TED$class <- testDataset$class
 
   if(nrow(dataset$VD) > 1){
-    #dmy <- dummyVars(" ~ .", data = dataset$VD[,names(dataset$VD) != "class"])
     validationSet <- data.frame(predict(dmy, newdata = dataset$VD))
     validationSet$class <- dataset$VD$class
     dataset$VD <- validationSet

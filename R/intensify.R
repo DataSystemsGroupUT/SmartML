@@ -44,9 +44,13 @@ intensify <- function(R, bestParams, bestPerf, candidateConfs, foldedSet, traini
     forMe <- 0
     #number of folds with lower performance for candidate configuration
     againstMe <- 0
+    fails <- 0
     while(pointer < B){
       for(i in pointer:min(pointer+N-1, B)){
         tmpPerf <- runClassifier(trainingSet[foldedSet[[i]], ], validationSet, cntParams, classifierAlgorithm, metric = metric)
+        if(tmpPerf$perf == 0){
+          fails <- fails + 1
+        }
         cntPerf <- c(cntPerf, tmpPerf$perf)
         if(i > length(bestPerf))
           tmpPerf <- runClassifier(trainingSet[foldedSet[[i]], ], validationSet, bestParams, classifierAlgorithm, metric = metric)
@@ -58,7 +62,7 @@ intensify <- function(R, bestParams, bestPerf, candidateConfs, foldedSet, traini
         t <- toc(quiet = TRUE)
         timeTillNow <- timeTillNow + t$toc - t$tic
         tic(quiet = TRUE)
-        if(timeTillNow > maxTime){
+        if(timeTillNow > maxTime || fails > 2){
           timeFlag <- TRUE
           break
         }
@@ -76,5 +80,5 @@ intensify <- function(R, bestParams, bestPerf, candidateConfs, foldedSet, traini
     bestParams$performance <- mean(bestPerf)
     R <- rbind(R, cntParams)
   }
-  return(list(params = bestParams, perf = bestPerf, r = R, timeTillNow = timeTillNow))
+  return(list(params = bestParams, perf = bestPerf, r = R, timeTillNow = timeTillNow, fails = fails))
 }

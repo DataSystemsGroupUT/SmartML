@@ -40,7 +40,7 @@ featurePreProcessing <- function(data, dataTED, preProcessF, nComp) {
   }
   else if(preProcessF == 'pca'){
     if (is.na(nComp))
-      preprocessParams <- preProcess(data, method=c("center", "scale", "pca"))
+      preprocessParams <- preProcess(data, method=c("pca"))
     else
       preprocessParams <- preProcess(data, method=c("center", "scale", "pca"), pcaComp = nComp)
   }
