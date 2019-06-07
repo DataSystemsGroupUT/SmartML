@@ -57,7 +57,7 @@ readDataset <- function(directory, testDirectory, vRatio = 0.3, classCol, prePro
   }
 
   #Sampling from large datasets
-  maxSample = 1000000
+  maxSample = 20000000
   n = as.integer(maxSample / ncol(data))
   if(maxSample < nrow(data) * ncol(data)){
     sampleInds <- createDataPartition(y = data$class, times = 1, p = n/nrow(data), list = FALSE)
