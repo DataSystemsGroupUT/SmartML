@@ -69,8 +69,8 @@ plot(result2$interpret$featImp) #Feature Importance Plot
 ```
 
 ```{r}
-#' Option 2 = Both Classifier Selection and Parameter Optimization, use 20% validation set from training set, select only features (1,3,5,7,9,11,13,15) from dataset, and apply MICE for missing values imputation
-result3 <- autoRLearn(5, 'sampleDatasets/EEGEyeState/train.csv', 'sampleDatasets/EEGEyeState/test.csv', vRatio = 0.2, selectedFeats = c(1,3,5,7,9,11,13,15), missingOpr = TRUE) # Option 2 runs for both classifier algorithm selection and parameter tuning for 5 minutes.
+#' Option 2 = Both Classifier Selection and Parameter Optimization, use 20% validation set from training set, and apply MICE for missing values imputation
+result3 <- autoRLearn(5, 'sampleDatasets/EEGEyeState/train.csv', 'sampleDatasets/EEGEyeState/test.csv', vRatio = 0.2, missingOpr = TRUE) # Option 2 runs for both classifier algorithm selection and parameter tuning for 5 minutes.
 
 
 result3$clfs #best classifier found
