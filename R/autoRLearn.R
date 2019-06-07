@@ -192,7 +192,7 @@ autoRLearn <- function(maxTime, directory, testDirectory, classCol = 'class', me
               bestAlgorithmPerf <- bestPerf
               bestAlgorithm <- classifierAlgorithm
               bestAlgorithmParams <- bestParams
-              cat('Best Classifier:', bestAlgorithm, ' --> Performance:', bestAlgorithmPerf, '\n')
+              #cat('Best Classifier:', bestAlgorithm, ' --> Performance:', bestAlgorithmPerf, '\n')
             }
             break
           }
