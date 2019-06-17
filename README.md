@@ -1,6 +1,6 @@
 <img src = "https://bigdata.cs.ut.ee/smartml/images/banner.png">
 
-[![Build Status](https://travis-ci.org/DataSystemsGroupUT/SmartML.svg?branch=master)](https://travis-ci.org/DataSystemsGroupUT/SmartML)
+
 [![DOI](http://joss.theoj.org/papers/10.21105/joss.00786/status.svg)](https://doi.org/10.5441/002/edbt.2019.54)
 
 
@@ -17,21 +17,20 @@ The goal of SmartML is to automate the process of classifier algorithm selection
 2. In addition, we offer different data preprocessing, and feature engineering algorithms that can be specified by user and applied on tabular datasets of either CSV or ARFF extensions easily.
 3. SmartML has a collaborative knowledge base that grows by time as more users are using our tool.
 4. Finally, SmartML has the ability to do some model interpretability plots for feature importance and interaction by help of ```iml``` package for ML model interpretability.
-5. SmartML has a web service for the tool with a simple R Shiny interface that can be found <a href = "https://bigdata.cs.ut.ee/smartml/index.html"> HERE </a>, and demonstration for how to use the web service can be found <a href="https://www.youtube.com/watch?v=m5sbV1P8oqU">HERE</a>.
 
 ---
 ## Installation
 
-You can install the released version of SmartML from [Github](https://github.com/DataSystemsGroupUT/SmartML) with:
+You can install the released version of SmartML from [Github](https://github.com/mmaher22/SmartML) with:
 
 ``` r
-install_github("DataSystemsGroupUT/SmartML")
+install_github("mmaher22/SmartML")
 ```
 
 ---
 ## User Manual
 
-Manual for the SmartML R package can be found <a href = "https://github.com/DataSystemsGroupUT/Auto-Machine-Learning/blob/master/manual.pdf"> HERE </a>
+Manual for the SmartML R package can be found <a href = "https://github.com/mmaher22/Auto-Machine-Learning/blob/master/manual.pdf"> HERE </a>
 
 ---
 ## Example
@@ -80,7 +79,7 @@ result3$perf #performance of chosen classifier on testing set
 
 ---
 ## Contribution GuideLines to SmartML
-To Contribute to `SmartML`, Please Follow these <a href = "https://github.com/DataSystemsGroupUT/SmartML/blob/master/CONTRIBUTE.md"> GuideLines </a>
+To Contribute to `SmartML`, Please Follow these <a href = "https://github.com/mmaher22/SmartML/blob/master/CONTRIBUTE.md"> GuideLines </a>
 
 ---
 ## Publication
@@ -91,12 +90,5 @@ Mohamed Maher, Sherif Sakr.,SMARTML: A Meta Learning-Based Framework for Automat
 ```
 
 ---
-## Funding:
-This work is funded by the European Regional Development Funds via the Mobilitas Plus programme (grant MOBTT75).
-
----
 ## Licence:
-<p>
-  &copy; 2019, Data Systems Group at University of Tartu
-</p>
 This work is licensed under the terms of the GNU General Public License, version 3.0 (GPLv3)
