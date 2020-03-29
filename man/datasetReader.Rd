@@ -4,9 +4,17 @@
 \alias{datasetReader}
 \title{Read Dataset File into Memory.}
 \usage{
-datasetReader(directory, testDirectory, selectedFeats = c(),
-  classCol = "class", preProcessF = "N", featuresToPreProcess = c(),
-  nComp = NA, missingVal = c("NA", "?", " "), missingOpr = 0)
+datasetReader(
+  directory,
+  testDirectory,
+  selectedFeats = c(),
+  classCol = "class",
+  preProcessF = "N",
+  featuresToPreProcess = c(),
+  nComp = NA,
+  missingVal = c("NA", "?", " "),
+  missingOpr = 0
+)
 }
 \arguments{
 \item{directory}{String of the directory to the file containing the training dataset.}

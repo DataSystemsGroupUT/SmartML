@@ -4,11 +4,23 @@
 \alias{autoRLearn}
 \title{Run smartML function for automatic Supervised Machine Learning.}
 \usage{
-autoRLearn(maxTime, directory, testDirectory, classCol = "class",
-  metric = "acc", vRatio = 0.3, preProcessF = c("standardize", "zv"),
-  featuresToPreProcess = c(), nComp = NA, nModels = 5, option = 2,
-  featureTypes = c(), interp = FALSE, missingOpr = FALSE,
-  balance = FALSE)
+autoRLearn(
+  maxTime,
+  directory,
+  testDirectory,
+  classCol = "class",
+  metric = "acc",
+  vRatio = 0.3,
+  preProcessF = c("standardize", "zv"),
+  featuresToPreProcess = c(),
+  nComp = NA,
+  nModels = 5,
+  option = 2,
+  featureTypes = c(),
+  interp = FALSE,
+  missingOpr = FALSE,
+  balance = FALSE
+)
 }
 \arguments{
 \item{maxTime}{Float numeric of the maximum time budget for reading dataset, preprocessing, calculating meta-features, Algorithm Selection & hyper-parameter tuning process only in minutes(Excluding Model Interpretability) - This is applicable in case of Option = 2 only.}
@@ -73,7 +85,7 @@ Run the smartML main function for automatic classifier algorithm selection, and 
 }
 \examples{
 \dontrun{
-autoRLearn(1, 'sampleDatasets/car/train.arff', \\
+autoRLearn(1, 'sampleDatasets/car/train.arff', \
 'sampleDatasets/car/test.arff', option = 2, preProcessF = 'normalize')
 
 result <- autoRLearn(10, 'sampleDatasets/shuttle/train.arff', 'sampleDatasets/shuttle/test.arff')

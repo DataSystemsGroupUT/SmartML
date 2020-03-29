@@ -1,0 +1,52 @@
+{
+	"params":["num.trees", "mtry", "max.depth", "min.node.size"],
+	"parents":["num.trees", "mtry", "max.depth", "min.node.size"],
+	"num.trees":
+	{
+		"type":"continuous",
+		"scale":"int",
+		"minVal":"1",
+		"maxVal":"500",
+		"default":"500",
+		"constraint":"any",
+		"requires":
+		{
+		}
+	},
+	"mtry":
+	{
+		"type":"continuous",
+		"scale":"int",
+		"minVal":"1",
+		"maxVal":"30",
+		"default":"5",
+		"constraint":"any",
+		"requires":
+		{
+		}
+	},
+	"max.depth":
+	{
+		"type":"continuous",
+		"scale":"int",
+		"minVal":"0",
+		"maxVal":"10",
+		"default":"0",
+		"constraint":"any",
+		"requires":
+		{
+		}
+	},
+	"min.node.size":
+	{
+		"type":"continuous",
+		"scale":"int",
+		"minVal":"1",
+		"maxVal":"10",
+		"default":"1",
+		"constraint":"any",
+		"requires":
+		{
+		}
+	}
+}

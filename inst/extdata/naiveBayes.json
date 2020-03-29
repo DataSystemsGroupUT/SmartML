@@ -10,7 +10,7 @@
 		"scale":"exp",
 		"constraint":"any",
 		"requires":
-		{	
+		{
 		}
 	},
 	"laplace":
@@ -21,7 +21,6 @@
 		"minVal":"0",
 		"maxVal":"9",
 		"constraint":"any",
-		"type":"discrete",
 		"requires":
 		{
 		}

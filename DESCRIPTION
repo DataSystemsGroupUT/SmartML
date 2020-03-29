@@ -1,48 +1,28 @@
 Package: SmartML
-Type: Package
+Version: 0.3.0
 Title: Machine Learning Automation
-Version: 0.1
-Authors@R: c(
-    person("Mohamed", "Maher", email = "s-mohamed.zenhom@zewailcity.edu.eg", role = c("aut", "cre")),
-    person("Sherif", "Sakr", email = "sherif.sakr@ut.ee", role = "aut"))
-Maintainer: Mohamed Maher <s-mohamed.zenhom@zewailcity.edu.eg>
+Authors@R:
+  c(person(given = "Mohamed",
+           family = "Maher",
+           email = "s-mohamed.zenhom@zewailcity.edu.eg",
+           role = c("aut", "cre")),
+    person(given = "Sherif",
+           family = "Sakr",
+           email = "sherif.sakr@ut.ee",
+           role = "aut"),
+    person(given = "Bruno Rucy",
+           family = "Carneiro Alves de Lima",
+           email = "brurucy@protonmail.ch",
+           role = "ctb"))
 Description: This package is a meta-learning based framework for automated selection and hyper-parameter tuning for machine learning algorithms. Being meta-learning based, the framework is able to simulate the role of the machine learning expert. In particular, the framework is equipped with a continuously updated knowledge base that stores information about statistical meta features of all processed datasets along with the associated performance of the different classifiers and their tuned parameters. Thus, for any new dataset, SmartML automatically extracts its meta features and searches its knowledge base for the best performing algorithm to start its optimization process. In addition, SmartML makes use of the new runs to continuously enrich its knowledge base to improve its performance and robustness for future runs.
 License: GPL-3
 Encoding: UTF-8
 LazyData: false
 Imports:
-  devtools,
-  R.utils,
-  stats,
-  httr,
-  UBL,
-  imputeMissings,
-  mice,
-  RCurl,
-  tictoc,
-  e1071,
-  mlbench,
-  fastICA,
-  RMySQL,
-  BBmisc,
-  rjson,
-  ggplot2,
-  RWeka,
-  farff,
-  pls,
-  randomForest,
-  FNN,
-  klaR,
-  rpart,
-  ipred,
-  C50,
-  mda,
-  MASS,
-  nnet,
-  deepboost,
-  iml,
-  datasets,
-  xts
+  devtools, R.utils, stats, httr, UBL, imputeMissings, mice, RCurl, tictoc, e1071, mlbench,
+  fastICA, RMySQL, BBmisc, rjson, ggplot2, RWeka, farff, pls, purrr, truncnorm, tidyr, dplyr,
+  xgboost, ranger, fastNaiveBayes, KernSmooth, LiblineaR, data.table, randomForest, FNN, klaR,
+  rpart, ipred, C50, mda, MASS, nnet, deepboost, iml, datasets, xts
 Suggests:
     knitr,
     covr,
@@ -50,5 +30,5 @@ Suggests:
     rmarkdown
 Depends:
     caret
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.0
 VignetteBuilder: knitr

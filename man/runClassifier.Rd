@@ -4,8 +4,14 @@
 \alias{runClassifier}
 \title{Fit a classifier model.}
 \usage{
-runClassifier(trainingSet, validationSet, params, classifierAlgorithm,
-  metric = "acc", interp = 0)
+runClassifier(
+  trainingSet,
+  validationSet,
+  params,
+  classifierAlgorithm,
+  metric = "acc",
+  interp = 0
+)
 }
 \arguments{
 \item{trainingSet}{Dataframe of the training set.}
