@@ -1,4 +1,7 @@
 #' @importFrom caret createDataPartition
+#' @importFrom stringr str_glue
+#' @importFrom tibble as_tibble
+#' @importFrom dplyr bind_rows
 
 #' @keywords internal
 successive_halving <- function(df, params_config, n, r, eta = 3, max_iter = 81, s_max = 4, evaluations = data.frame()) {

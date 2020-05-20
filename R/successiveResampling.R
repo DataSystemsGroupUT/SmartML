@@ -2,6 +2,10 @@
 #' @importFrom tidyr drop_na separate gather spread unite
 #' @importFrom dplyr select mutate_if arrange top_frac case_when mutate filter
 #' @importFrom truncnorm rtruncnorm dtruncnorm
+#' @importFrom dplyr ungroup
+#' @importFrom stringr str_extract
+#' @importFrom readr parse_number
+#' @importFrom dplyr top_n
 
 #' @keywords internal
 dpikSafe <- function(x, ...)
@@ -30,7 +34,9 @@ dpikSafe <- function(x, ...)
 
     } else
     {
-      stop(msg)
+      #stop(msg)
+      warning("0 scale, bandwidth estimation failed. using 1e-3")
+      result <- 1e-3
     }
 
   }
@@ -147,11 +153,19 @@ successive_resampling <- function(df, model, samples = 64, n = 27, bw = 3, kde_t
       arrange(desc(rank)) %>%
       top_n(n = n, wt = rank)
 
+    # print("Step one")
+    #
+    # print(evaluated_batch)
+
     evaluated_batch_step_two <- evaluated_batch %>%
       select(-rank) %>%
       gather(key, value) %>%
       mutate(params = paste(key, value, sep = " = ")) %>%
       .[["params"]]
+
+    #print("Step two")
+
+    #print(evaluated_batch_step_two)
 
     eval_batch_step_three <- evaluated_batch_step_two %>%
       matrix(nrow = n, ncol = length(params_list)) %>%
@@ -159,6 +173,10 @@ successive_resampling <- function(df, model, samples = 64, n = 27, bw = 3, kde_t
       unite(col = "params", sep = ",") %>%
       mutate(model = model) %>%
       select(model, params)
+
+    # print(cat("Step three", sep = "", " n = ", n, " ncol = ", length(params_list)))
+    #
+    # print(eval_batch_step_three)
 
     return(eval_batch_step_three)
 

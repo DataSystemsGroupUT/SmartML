@@ -36,6 +36,8 @@
 
 #' @importFrom R.utils withTimeout
 #' @importFrom tictoc tic toc
+#' @importFrom stats na.omit runif
+#' @importFrom utils head
 
 #' @export autoRLearn_
 autoRLearn_ <- function(df_train, df_test, maxTime = 10, models = c("randomForest", "naiveBayes", "boosting", "l2-linear-classifier", "svm"), optimizationAlgorithm = "hyperband", bw = 3, max_iter = 81, kde_type = "single") {

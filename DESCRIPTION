@@ -22,7 +22,7 @@ Imports:
   devtools, R.utils, stats, httr, UBL, imputeMissings, mice, RCurl, tictoc, e1071, mlbench,
   fastICA, RMySQL, BBmisc, rjson, ggplot2, RWeka, farff, pls, purrr, truncnorm, tidyr, dplyr,
   xgboost, ranger, fastNaiveBayes, KernSmooth, LiblineaR, data.table, randomForest, FNN, klaR,
-  rpart, ipred, C50, mda, MASS, nnet, deepboost, iml, datasets, xts
+  rpart, ipred, C50, mda, MASS, nnet, deepboost, iml, datasets, xts, readr, stringr, tibble
 Suggests:
     knitr,
     covr,

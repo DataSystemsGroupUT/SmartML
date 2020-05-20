@@ -1,3 +1,7 @@
+# SmartML 0.3.0.1
+
+* Hotfix, fixed some dependency issues relating to dplyr
+
 # SmartML 0.3.0
 
 ## Features
