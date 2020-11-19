@@ -1,0 +1,46 @@
+{
+	"params":["dfmax", "alpha", "gamma", "relax", "nfolds"],
+	"parents":["dfmax", "alpha", "gamma", "relax", "nfolds"],
+	"gamma":
+	{
+	  "type":"continuous",
+	  "scale":"double",
+	  "minVal":"0",
+	  "maxVal":"1",
+	  "default":"0.5",
+	  "constraint":"any"
+	},
+	"alpha":
+	{
+		"type":"continuous",
+		"scale":"double",
+		"minVal":"0",
+		"maxVal":"1",
+		"default":"0.3",
+		"constraint":"any"
+	},
+	"dfmax":
+	{
+		"type":"continuous",
+		"scale":"int",
+		"minVal":"10",
+		"maxVal":"100",
+		"default":"50",
+		"constraint":"any"
+	},
+	"nfolds":
+	{
+		"type":"continuous",
+		"scale":"int",
+		"minVal":"3",
+		"maxVal":"3",
+		"default":"3",
+		"constraint":"any"
+	},
+	"relax":
+	{
+		"type":"boolean",
+		"values":["TRUE", "FALSE"],
+		"default":"FALSE"
+	}
+}

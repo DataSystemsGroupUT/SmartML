@@ -1,0 +1,28 @@
+{
+	"params":["k", "distance", "kernel"],
+	"parents":["k", "distance", "kernel"],
+	"k":
+	{
+		"type":"continuous",
+		"scale":"int",
+		"minVal":"1",
+		"maxVal":"20",
+		"default":"7",
+		"constraint":"any"
+	},
+	"distance":
+	{
+		"type":"continuous",
+		"scale":"int",
+		"minVal":"1",
+		"maxVal":"4",
+		"default":"2",
+		"constraint":"any"
+	},
+	"kernel":
+	{
+		"type":"discrete",
+		"values":["rectangular", "epanechnikov", "gaussian", "rank", "optimal"],
+		"default":"optimal"
+	}
+}

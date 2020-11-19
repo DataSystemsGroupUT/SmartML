@@ -1,0 +1,470 @@
+---
+title: "new_tests"
+author: "rucy"
+date: "9/22/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+
+library(R.utils)
+library(mlr3)
+library(mlr3learners)
+library(readr)
+library(data.table)
+library(purrr)
+library(stringr)
+library(jsonlite)
+library(tictoc)
+
+## If you change any of the jsons
+
+## Do this:
+
+files <- dir(path <- "~/school_stuff/schoolwork/witchcraft/inst/extdata/hyperband_jsons", pattern = "*.json")
+
+names_clf <- files %>%
+  map_chr(~ str_remove(.x, pattern = ".json"))
+
+paths <- file.path(path, files)
+
+jsons <- paths %>%
+  map(.f = ~ fromJSON(txt = .x, flatten = T))
+
+names(jsons) <- names_clf
+
+## Then:
+
+## save(jsons, file = "~/school_stuff/schoolwork/witchcraft/sysdata.rda")
+
+# load("~/school_stuff/schoolwork/witchcraft/R/sysdata.rda")
+
+## Do this ^^ 
+
+param_sample <- function(model, hparam, columns = NULL) {
+
+  param <- jsons[[model]][[hparam]]
+
+  type <- param$type
+
+  type_scale <- param$scale
+
+  if(type == "discrete") {
+
+    param_estimation <- paste("'", base::sample(x = as.list(param$values), size = 1), "'", sep = "")
+
+    return(param_estimation)
+
+  }
+
+  else {
+
+    int_val <- ifelse(hparam == "mtry", as.numeric(columns) - 1, as.numeric(param$maxVal))
+
+    param_estimation <- fcase(type_scale == "int", rdunif(1, a = as.numeric(param$minVal),
+                                                          b = int_val),
+                              type_scale == "any", runif(1,  min = as.numeric(param$minVal),
+                                                         max = as.numeric(param$maxVal)),
+                              type_scale == "double", runif(1,  min = as.numeric(param$minVal),
+                                                            max = as.numeric(param$maxVal)),
+                              type_scale == "exp", runif(1,  min = 2^as.numeric(param$minVal),
+                                                         max = 2^as.numeric(param$maxVal)))
+
+    return(param_estimation)
+
+  }
+
+}
+
+get_random_hp_config <- function(model, columns = NULL) {
+
+  param_db <- jsons[[model]]
+
+  params_list <- param_db$params
+
+  params_list_mapped <- map(.x = params_list,
+                            .f = as_mapper( ~ param_sample(model = model, hparam = .x, columns = columns)))
+
+  `names<-`(params_list_mapped, params_list)
+
+}
+
+data_load <- read_csv(file = "~/school_stuff/schoolwork/witchcraft/inst/extdata/ta_train.csv")
+
+data_model <- data_load %>%
+  as.data.table()
+  
+data_model[, class := factor(class, levels = unique(class)) %>% sort()]
+
+```
+
+### New successive halving
+
+```{r}
+
+library(data.table)
+
+successive_halving <- function(df, model, params_config, n = 81, r = 1, eta = 3, max_iter = 81, s_max = 4, evaluations = data.frame()) {
+
+  final_df <- params_config
+  
+  task <- TaskClassif$new(id = "sh", backend = df, target = "class")
+  
+  param_number <- length(params_config)
+
+  for (k in 0:s_max) {
+
+    gc()
+
+    n_i = n * (eta ** -k)
+
+    r_i = r * (eta ** k)
+
+    r_p = r_i / max_iter
+
+    min_train_datapoints = (length(unique(df$class)) * 3) + 1
+
+    min_prob_datapoints = min_train_datapoints / nrow(df$class)
+    
+    train_idxs <- sample(task$nrow, task$nrow * max(min(r_p, 0.8), min_prob_datapoints))
+    test_idxs <- setdiff(seq_len(task$nrow), train_idxs)
+    
+    learners <- replicate(n = n_i, expr = {lrn(paste("classif", sep = ".", model))})
+
+    j = 1
+    for (i in learners) {
+      
+      i$param_set$values = final_df[[j]]
+      
+      j = j + 1
+      
+    }
+
+    for (l in learners) {
+      
+      l$train(task = task, row_ids = train_idxs)
+      
+    }
+
+    measure <- msr("classif.acc")
+
+    preds <- map(.x = learners, .f = ~ .x$predict(task, row_ids = test_idxs)$score(measure))
+
+    final_df <- final_df %>%
+      as.data.table() %>%
+      t() %>%
+      `colnames<-`(value = jsons[[model]]$params) %>%
+      as.data.table()
+    
+    final_df[, acc := unlist(preds)]
+    
+    final_df[, budget := r_i]
+    
+    final_df[, budget := r_p]
+
+    setorder(final_df, -acc)
+
+    evaluations <- rbindlist(list(evaluations, final_df))
+    
+    final_df <- final_df %>%
+      head(max(n_i/eta, 1))
+
+    if(k == s_max){
+
+      return(list("answer" = final_df, "sh_runs" = evaluations))
+
+    }
+    
+    final_df$acc = NULL
+    final_df$budget = NULL
+    
+    final_df <- purrr::transpose(final_df)
+
+  }
+}
+
+test_param_sampling <- replicate(81, get_random_hp_config("xgboost", columns = ncol(data_model)), simplify = FALSE)
+
+test_sh <- successive_halving(df = data_model, model = "xgboost", params_config = test_param_sampling)
+```
+
+### New hyperbandito
+
+```{r}
+
+calc_n_r = function(max_iter = 81, eta = 3, s = 4, B = 405) {
+
+  n = trunc(ceiling(trunc(B/max_iter/(s+1)) * eta**s))
+
+  r = max_iter * eta^(-s)
+
+  ans = c(n, r)
+
+  ans
+
+}
+
+
+hyperband <- function(df, model, max_iter = 81, eta = 3, maxtime = 1000) {
+
+  logeta = as_mapper(~ log(.x) / log(eta))
+
+  s_max = trunc(logeta(max_iter))
+
+  B = (s_max + 1) * max_iter
+
+  nrs = map_dfc(s_max:0, .f = ~ calc_n_r(max_iter, eta, .x, B)) %>%
+    t() %>%
+    `colnames<-`(value = c("n", "r")) %>%
+    as.data.table()
+
+  nrs$s = s_max:0
+
+  partial_halving <- function(n, r, s) {
+
+    successive_halving(df = df,
+                       model = model,
+                       params_config = replicate(n, get_random_hp_config(model, columns = ncol(df) - 1), simplify = FALSE),
+                       n = n,
+                       r = r,
+                       s_max = s,
+                       max_iter = max_iter,
+                       eta = eta)
+
+  }
+
+  tryCatch(expr = {withTimeout(expr = {
+
+    liszt = vector(mode = "list",
+                   length = max(nrs$s) + 1)
+
+    for (row in 1:nrow(nrs)) {
+
+      liszt[[row]] <- partial_halving(nrs[[row, 1]],
+                                      nrs[[row, 2]],
+                                      nrs[[row, 3]])
+
+    }
+  }, timeout = maxtime, cpu = maxtime)},
+
+  TimeoutException = function(ex) {
+
+    print("Budget ended.")
+
+    return(liszt)
+
+  },
+
+  finally = function(ex) {
+
+    print("Hyperband successfully finished.")
+
+    return(liszt) }
+  ,
+
+  error = function(ex) {
+
+    print(paste("Error found, replace ", model, sep = ""))
+
+    print(geterrmessage())
+
+    break
+
+  })
+
+  return(liszt)
+
+}
+
+tezt_hyperband = hyperband(df = data_model, model = "xgboost", maxtime = 120)
+```
+
+Evocation test
+
+```{r}
+
+evocate <- function(df_train, df_test, maxTime = 10, models = "xgboost", optimizationAlgorithm = "hyperband", bw = 3, max_iter = 81, kde_type = "single") {
+
+  total_time = maxTime * 60
+
+  parameters_per_model <- map_int(models, .f = ~ length(jsons[[.x]]$params))
+
+  times = (parameters_per_model * total_time) / (sum(parameters_per_model))
+
+  print("Time distribution:")
+  print(times)
+  print("Models selected:")
+  print(models)
+
+  run_optimization = function(model, time) {
+
+    results = NULL
+
+    priors = data.frame()
+
+    tic(model, "optimization time:")
+
+    if(optimizationAlgorithm == "hyperband") {
+
+      current <- Sys.time() %>% as.integer()
+
+      end <- (Sys.time() %>% as.integer()) + time
+
+      repeat {
+
+        gc(verbose = F)
+
+        tic("current hyperband runtime")
+
+        print(paste("started", model))
+
+        time_left <- max(end - (Sys.time() %>% as.integer()), 1)
+
+        print(paste("There are:", time_left, "seconds left for this hyperband run"))
+
+        res <- hyperband(df = df_train, model = model, max_iter = max_iter, maxtime = time_left)
+
+        if(is_empty(purrr::flatten(res)) == F) {
+
+          res <- res %>%
+            map_dfr(.f = ~ .x[["answer"]]) %>%
+            as.data.table()
+          
+          setorder(res, -acc)
+          
+          res <- res %>% head(1)
+
+          results <- c(list(res), results)
+          
+          print(res)
+
+          print(paste('Best accuracy from hyperband this round: ', res$acc))
+
+        }
+
+        elapsed <- (Sys.time() %>% as.integer()) - current
+
+        if(elapsed >= time) {
+
+          break
+
+        }
+
+      }
+
+    }
+
+    else if(optimizationAlgorithm == "bohb") {
+
+      current <- Sys.time() %>% as.integer()
+
+      end <- (Sys.time() %>% as.integer()) + time
+
+      repeat {
+
+        gc(verbose = F)
+
+        tic("current bohb time")
+
+        print(paste("started", model))
+
+        time_left <- max(end - (Sys.time() %>% as.integer()), 1)
+
+        print(paste("There are:", time_left, "seconds left for this bohb run"))
+
+        res <- bohb(df = df_train, model = model, bw = bw, max_iter = max_iter, maxtime = time_left, priors = priors, kde_type = kde_type)
+
+        if(is_empty(flatten(res)) == F) {
+
+          priors <- res %>%
+            map_dfr(.f = ~ .x[["sh_runs"]])
+
+          res <- res %>%
+            map_dfr(.f = ~ .x[["answer"]]) %>%
+            arrange(desc(acc)) %>%
+            head(1)
+
+          results <- c(list(res), results)
+
+          print(paste('Best accuracy from hyperband this round: ', res$acc))
+
+        }
+
+        elapsed <- (Sys.time() %>% as.integer()) - current
+
+        if(elapsed >= time) {
+
+          break
+
+        }
+
+      }
+
+
+    }
+
+    else {
+
+      errorCondition(message = "Only hyperband and bohb are valid optimization algorithms at this moment.")
+
+      break
+
+    }
+
+    toc()
+
+    results
+
+  }
+
+  print("Finished all optimizations.")
+
+  ans = vector(mode = "list", length = length(models))
+
+  for(i in 1:length(models)) {
+
+    flag <- TRUE
+
+    tryCatch(expr = {
+
+      ans[[i]] <- run_optimization(models[[i]], times[[i]])
+
+    }, error = function(e) {
+
+      print("Error spotted, going to the next model")
+
+      flag <<- FALSE
+
+    })
+
+    if (!flag) next
+
+  }
+
+  return(ans)
+  
+  ### TO DO - add the final model evaluation.
+  ### with your cross validation ideas and etc.
+
+}
+
+
+```
+
+```{r}
+
+data_train <- read_csv(file = "~/school_stuff/schoolwork/witchcraft/inst/extdata/ta_train.csv") %>% as.data.table()
+data_test <- read_csv(file = "~/school_stuff/schoolwork/witchcraft/inst/extdata/ta_test.csv") %>% as.data.table()
+
+data_train[, class := factor(class, levels = unique(class)) %>% sort()]
+data_test[, class := factor(class, levels = unique(class)) %>% sort()]
+
+tezt <- evocate(data_train, data_test, maxTime = 2, models = "xgboost")
+
+```

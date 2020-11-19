@@ -1,0 +1,37 @@
+{
+	"params":["dfmax", "alpha", "gamma", "relax"],
+	"parents":["dfmax", "alpha", "gamma", "relax"],
+	"gamma":
+	{
+	  "type":"continuous",
+	  "scale":"double",
+	  "minVal":"0",
+	  "maxVal":"1",
+	  "default":"0.5",
+	  "constraint":"any"
+	},
+	"alpha":
+	{
+		"type":"continuous",
+		"scale":"double",
+		"minVal":"0",
+		"maxVal":"1",
+		"default":"0.3",
+		"constraint":"any"
+	},
+	"dfmax":
+	{
+		"type":"continuous",
+		"scale":"int",
+		"minVal":"10",
+		"maxVal":"100",
+		"default":"50",
+		"constraint":"any"
+	},
+	"relax":
+	{
+		"type":"boolean",
+		"values":["TRUE", "FALSE"],
+		"default":"FALSE"
+	}
+}

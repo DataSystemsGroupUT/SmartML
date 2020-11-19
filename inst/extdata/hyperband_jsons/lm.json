@@ -1,0 +1,10 @@
+{
+	"params":["singular.ok"],
+    "parents":["singular.ok"],
+	"type":
+	{
+		"type":"boolean",
+		"values":["TRUE"],
+		"default":"TRUE"
+	}
+}

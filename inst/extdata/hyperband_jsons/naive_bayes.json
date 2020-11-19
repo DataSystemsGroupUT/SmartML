@@ -1,0 +1,13 @@
+{
+	"params":["laplace"],
+	"parents":["laplace"],
+	"laplace":
+	{
+		"default":"0",
+		"type":"continuous",
+		"scale":"int",
+		"minVal":"0",
+		"maxVal":"4",
+		"constraint":"any"
+	}
+}

@@ -1,0 +1,43 @@
+{
+	"params":["kernel", "type", "degree", "gamma", "cost"],
+    "parents":["kernel", "type", "degree", "gamma", "cost"],
+	"kernel":
+	{
+		"type":"discrete",
+		"values":["linear", "radial", "polynomial"],
+		"default":"linear"
+	},
+	"type":
+	{
+		"type":"discrete",
+		"values":["C-classification"],
+		"default":"C-classification"
+	},
+	"gamma":
+	{
+		"default":"-4",
+		"type":"continuous",
+		"minVal":"-10",
+		"maxVal":"5",
+		"scale":"exp",
+		"constraint":"any"
+	},
+	"degree":
+	{
+		"default":"3",
+		"type":"continuous",
+		"minVal":"2",
+		"maxVal":"5",
+		"scale":"int",
+		"constraint":"any"
+	},
+	"cost":
+	{
+		"default":"-2",
+		"type":"continuous",
+		"minVal":"-6",
+		"maxVal":"12",
+		"scale":"exp",
+		"constraint":"any"
+	}
+}

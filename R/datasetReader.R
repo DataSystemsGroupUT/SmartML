@@ -37,7 +37,9 @@
 #' dataset <- datasetReader('/Datasets/irisTrain.csv', '/Datasets/irisTest.csv')
 #' }
 
-datasetReader <- function(directory, testDirectory, selectedFeats = c(), classCol = 'class', preProcessF = 'N', featuresToPreProcess = c(), nComp = NA, missingVal = c('NA', '?', ' '), missingOpr = 0) {
+datasetReader <- function(directory, testDirectory, selectedFeats = c(), classCol = 'class',
+                          preProcessF = 'N', featuresToPreProcess = c(), nComp = NA,
+                          missingVal = c('NA', '?', ' '), missingOpr = 0) {
   #check if CSV or arff
   ext <- substr(directory, nchar(directory)-2, nchar(directory))
   #Read CSV file of data

@@ -48,7 +48,6 @@
 #' @importFrom  randomForest randomForest
 #' @importFrom  FNN knn
 #' @importFrom  ipred bagging
-#' @importFrom  RWeka J48 LMT
 #' @importFrom  C50 C5.0 C5.0Control
 #' @importFrom  rpart rpart rpart.control
 #' @importFrom  MASS lda

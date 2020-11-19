@@ -19,16 +19,17 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: false
 Imports:
-  devtools, R.utils, stats, httr, UBL, imputeMissings, mice, RCurl, tictoc, e1071, mlbench,
-  fastICA, RMySQL, BBmisc, rjson, ggplot2, RWeka, farff, pls, purrr, truncnorm, tidyr, dplyr,
-  xgboost, ranger, fastNaiveBayes, KernSmooth, LiblineaR, data.table, randomForest, FNN, klaR,
-  rpart, ipred, C50, mda, MASS, nnet, deepboost, iml, datasets, xts, readr, stringr, tibble
+  devtools, R.utils, stats, tictoc, e1071, BBmisc, kknn, purrr, xgboost, ranger, 
+  KernSmooth, data.table, randomForest, rpart, glmnet, nloptr, bbotk
 Suggests:
     knitr,
     covr,
     testthat,
     rmarkdown
 Depends:
-    caret
-RoxygenNote: 7.1.0
+    mlr3,
+    mlr3learners,
+    mlr3pipelines,
+    mlr3filters
+RoxygenNote: 7.1.1
 VignetteBuilder: knitr

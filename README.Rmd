@@ -1,0 +1,67 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# witchcraft <a href='https://bigdata.cs.ut.ee/'><img src='man/figures/logo.png' align="right" height="138.5" /></a>
+<!-- badges: start -->
+[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/witchcraft)](https://cran.r-project.org/package=witchcraft)
+[![lifecycle](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
+  [![Travis build status](https://travis-ci.org/brurucy/witchcraft.svg?branch=master)](https://travis-ci.org/brurucy/witchcraft)
+<!-- badges: end -->
+
+The R package *witchcraft* is an opinionated framework for automated machine learning, with the intent of being frequently updated with the newest state-of-the-art optimization methods.
+
+At the moment, *witchcraft* uses the [Bayesian-Optimization-Hyperband](https://arxiv.org/pdf/1603.06560.pdf) algorithm.
+
+Besides *Combined Algorithm Selection and Hyperparameter optimization*, *witchcraft* provides tools to evaluate the results, which are consistent with the mlr3 workflow.
+
+## Installation
+
+Soon, installing the **stable** version from [CRAN](https://cran.r-project.org/package=witchcraft) will be possible:
+
+```{r cran-installation, eval = FALSE}
+install.packages("witchcraft")
+```
+
+You can always install the **development** version from
+[GitHub](https://github.com/brurucy/witchcraft)
+
+```{r gh-installation, eval = FALSE}
+# install.packages("remotes")
+remotes::install_github("brurucy/witchcraft")
+```
+
+Installing this software requires a compiler.
+
+## Valid example
+
+```{r example, message=FALSE, eval=FALSE}
+library(SmartML)
+library(readr)
+
+data_train <- readr::read_csv('inst/extdata/dota_train.csv') %>%
+  as.data.table()
+
+data_test <- readr::read_csv('inst/extdata/dota_test.csv') %>%
+  as.data.table()
+
+data_train[, class := factor(class, levels = unique(class)) %>% sort()]
+data_test[, class := factor(class, levels = unique(class)) %>% sort()]
+
+params <- SmartML:::get_random_hp_config('kknn', columns = ncol(data_train) - 1)
+
+print(typeof(params$kernel))
+params
+
+```

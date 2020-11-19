@@ -1,0 +1,1177 @@
+---
+title: "func_tests"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=F)
+```
+
+## Hyperband
+
+### Classifiers jsons tidying up
+
+```{r}
+library(e1071)
+library(randomForest)
+#library(ipred)
+library(jsonlite)
+#library(rpart)
+library(data.table)
+library(caret)
+library(ks)
+#library(truncnorm)
+#library(klaR)
+library(tidyverse)
+library(LiblineaR)
+library(ranger)
+source(file = "runClassifier.R")
+#library(FNN)
+
+files <- dir(path <- "~/school_stuff/schoolwork/witchcraft/inst/extdata/hyperband_jsons", pattern = "*.json")
+
+names_clf <- files %>%
+  map_chr(~ str_remove(.x, pattern = ".json"))
+
+paths <- file.path(path, files)
+
+jsons <- paths %>%
+  map(.f = ~ fromJSON(txt = .x, flatten = T))
+
+names(jsons) <- names_clf
+
+```
+
+### Hyperband itself
+
+#### Initialization
+
+```{r}
+
+max_iter = 81
+
+eta = 3
+
+logeta = as_mapper(~ log(.x) / log(eta))
+
+s_max = trunc(logeta(max_iter))
+
+B = (s_max + 1) * max_iter
+
+```
+
+#### Inner loop
+
+```{r}
+
+calc_n_r = function(max_iter = 81, eta = 3, s = 4, B = 405) {
+  
+  n = trunc(ceiling(trunc(B/max_iter/(s+1)) * eta**s))
+  
+  r = max_iter * eta^(-s)
+  
+  ans = c(n, r)
+  
+  ans
+  
+}
+
+nrs <- map_dfc(s_max:0, .f = ~ calc_n_r(max_iter, eta, .x, B)) %>%
+  t() %>%
+  `colnames<-`(value = c("n", "r")) %>%
+  as_tibble()
+
+nrs$s = s_max:0
+
+```
+
+#### Successive Halving First half
+
+```{r}
+
+calculate_ni_ri = function(x, eta = 3) {
+  
+  i = 0:(x$s)
+  
+  temp = as_mapper(~c(.x * eta^(-..1), .y * eta^..1))
+  
+  try = pmap(list(.x = x$n, .y = x$r, ..1 = i), .f = temp)
+  
+  try
+  
+}
+
+calculate_ni_ri(x = nrs %>% slice(1))
+
+```
+
+#### Successive Halving Second Half
+
+##### Run and return val loss
+
+```{r}
+
+# data_load <- read_csv(file = "~/witchcraft/inst/extdata/avila-tr.txt", col_names = F) %>%
+#   rename(class = X11) %>%
+#   mutate(class = as_factor(class))
+
+data_load <- read_csv(file = "~/school_stuff/schoolwork/witchcraft/inst/extdata/schizo.csv") %>%
+ mutate_at(.vars = vars(gain_ratio_1:gain_ratio_11),
+           .funs = ~ as.numeric(.)) %>%
+ mutate_if(is.character, as.factor)
+
+#data_load <- mnist_raw <- read_csv("https://pjreddie.com/media/files/mnist_train.csv", col_names = FALSE)
+
+#malware <- read_csv(file = "~/witchcraft/inst/extdata/test_malware_single.csv")
+
+#malware$y <- "1"
+
+#realware <- read_csv(file = "~/witchcraft/inst/extdata/test_realware_single.csv") 
+
+#realware$y <- "0"
+
+#preproc_model <- realware %>% bind_rows(malware)
+
+#preproc_model <- data_load %>%
+ # sample_frac(0.05) %>%
+  #rename(y = X1) %>%
+  #mutate(y = as_factor(y))
+
+#preproc <- preproc_model %>% caret::preProcess(method = c("medianImpute", "center", "scale", "nzv", "corr"))
+
+preproc <- data_load %>% caret::preProcess(method = c("medianImpute", "center", "scale", "zv", "corr"))
+
+#preproc_dummies <- caret::dummyVars(~ . , data = preproc_model)
+
+# data_model <- preproc_model %>%
+#   dplyr::select(-class) %>%
+#   predict(preproc, .) %>%
+#   predict(dummyVars(~ ., data = ., drop2nd = T), .) %>%
+#   as.data.frame() %>%
+#   bind_cols(preproc_model %>% select(class)) %>%
+#   select(-ID)
+
+library(xgboost)
+library(caret)
+
+data_model <- data_load %>%
+  dplyr::select(-class) %>%
+  predict(dummyVars(~ ., data = ., drop2nd = T), .) %>%
+  predict(preproc, .) %>%
+  as.data.frame() %>%
+  bind_cols(data_load %>% select(class))
+
+split <- createDataPartition(data_model[, "class"], p = 0.75,
+                             list = F)
+
+data_train <- data_model[split, ]
+
+data_test  <- data_model[-split, ]
+
+data_model_train <- subset(data_train, select = -class)
+data_model_train_dmat <- data_model_train %>% as.matrix()
+mode(data_model_train_dmat) = 'double'
+data_model_train_y <- subset(data_train, select = class) %>% as_vector()
+data_model_train_y_dmat <- data_model_train_y %>% as.numeric() %>% map(.f = ~ .x - 1)
+
+data_model_test <- subset(data_test, select = -class)
+data_model_test_dmat <- data_model_test %>% as.matrix()
+mode(data_model_test_dmat) = 'double'
+data_model_test_y <- subset(data_test, select = class)
+
+dmat <- xgb.DMatrix(data = data_model_train_dmat, label = data_model_train_y_dmat)
+
+xgb_model <- xgboost(data = dmat,
+                     nrounds = 5,
+                     eta = 1,
+                     objective = "multi:softprob",
+                     num_class = length(unique(data_model_train_y)))
+
+xg_pred_test <- predict(xgb_model, data_model_test_dmat)
+
+pred_test <- matrix(xg_pred_test, ncol = length(unique(data_model_train_y)), byrow = T)
+
+colnames(pred_test) = levels(data_load$class)
+
+pred_test = apply(pred_test, 1, function(x) colnames(pred_test)[which.max(x)])
+
+levels(pred_test) <- levels(data_load$class)
+
+mean(data_model_test_y == pred_test)
+
+default_params <- list(eta = -7, max_depth = 5, min_child_weight = 1, gamma = 0.01, colsample_bytree = 0.5)
+
+source("runClassifier.R")
+
+test_rpart <- runClassifier(data_train, data_test, params = list(minsplit = 5, maxdepth = 20, cp = -7, xval = 5), classifierAlgorithm = "rpart")
+test_rf <- runClassifier(data_train, data_test, params = get_random_hp_config(jsons$randomForest), classifierAlgorithm = "randomForest")
+
+testeeb_hb <- autoRlearn_(df = data_model, maxTime = 2, optimizationAlgorithm = "hyperband", bw = 3)
+
+testeeb_bohb <- autoRlearn_(df = data_model, maxTime = 2, optimizationAlgorithm = "bohb", bw = 3)
+
+#data_model <- predict(preproc, preproc_model)
+
+# data_model <- preproc_model %>% 
+#   predict(preproc, .) %>%
+#   mutate(y = as_factor(y)) %>%
+#   select(y, everything()) %>%
+#   rename_if(is_numeric, .funs = ~ paste0("X", .x)) %>%
+#   rename(y = Xy)
+
+test_fast <- function(cost = 1, epsilon = 0.1, option = 5) {
+  
+liblinear <- LiblineaR::LiblineaR(data = data_model_train, target = data_model_train_y, cost = cost, epsilon = epsilon, type = option)
+
+predlibli <- predict(liblinear, data_model_test)
+
+predlibli
+  
+}
+
+tic("HEHE")
+smart_test <- SmartML::autoRLearn(maxTime = 5, directory = "~/witchcraft/inst/extdata/train_schizo.csv",
+                                              testDirectory = "~/witchcraft/inst/extdata/test_schizo.csv",
+                                 classCol = "y",
+                                 nModels = 5,
+                                 metric = 'avg-fscore')
+toc()
+
+testing_nb <- runClassifier(trainingSet = data_train,
+              validationSet = data_test,
+              params = list(laplace = 5), classifierAlgorithm = "naiveBayes", metric = 'acc')
+
+feet <- fnb.train(x = data_train %>% select(-class), data_train[, "class"])
+
+pred <- predict(feet, data_test %>% select(-class))
+
+library(data.table)
+
+
+params_cont <- function(param){
+
+  type <- param$type
+
+  type_scale <- param$scale
+
+  if(type == "discrete") {
+
+    param_estimation <- paste("'", base::sample(x = as.list(param$values), size = 1), "'", sep = "")
+
+    param_estimation
+
+  }
+
+  else {
+
+    param_estimation <- fcase(type_scale == "int", rdunif(1, a = as.numeric(param$minVal),
+                                                          b = as.numeric(param$maxVal)),
+                              type_scale == "any", runif(1,  min = as.numeric(param$minVal),
+                                                         max = as.numeric(param$maxVal)),
+                              type_scale == "double", runif(1,  min = as.numeric(param$minVal),
+                                                            max = as.numeric(param$maxVal)),
+                              type_scale == "exp", runif(1,  min = as.numeric(param$minVal),
+                                                         max = as.numeric(param$maxVal)))
+
+    param_estimation
+  }
+
+  param_estimation
+
+}
+
+get_random_hp_config <- function(params) {
+  
+  params_list <- params$params
+  
+  params_list_mapped <- map(.x = params_list,
+                            .f = as_mapper( ~ params_cont(params[[.x]])))
+  
+  `names<-`(params_list_mapped, params_list)
+  
+} 
+
+make_paste_final <- function(param) {
+  
+  params_list <- get_random_hp_config(jsons[[param]])
+  
+  names_list <- names(params_list) %>%
+    map(~ str_glue(.x, " = ")) %>%
+    map2(params_list, ~paste(.x, .y, sep = "")) %>%
+    paste(collapse = ",")
+  
+  names_list
+  
+}
+
+sample_n_params <- function(n, model) {
+  
+  #print(model)
+  
+  ans <- map_chr(.x = rep(model, n), .f = make_paste_final) %>%
+    data.frame(model = model,
+               params = .) %>%
+    mutate_all(.funs = as.character)
+  
+  #print(ans)
+  
+  ans
+  
+}
+
+make_fit <- function(train_df, model, params = "cp = 0.02") {
+  
+  paramsplit = length(str_split(params, pattern = ",") %>% as_vector())
+      
+  param = if (paramsplit > 1) {
+    
+    param_prep = params %>%
+    str_split(pattern = ",") %>%
+    flatten_chr()
+  
+    param_names = param_prep %>%
+      map_chr(.f = ~ str_extract(string = .x, pattern = "[\\w=]*"))
+  
+    param_values = param_prep %>%
+      map_dbl(.f = ~ parse_number(.x)) %>%
+      `names<-`(value = param_names) %>%
+      as.list()
+    
+    param_values
+    
+  } else {
+    
+    param_name = params %>%
+      str_extract(pattern = "[\\w=]*")
+    
+    param_value = params %>%
+      str_extract(pattern = "(?<==).*$") %>%
+      str_trim() %>%
+      as_vector(.type = "numeric") %>%
+      `names<-`(value = param_name) %>%
+      as.list()
+    
+    param_value
+    
+  }
+  
+  fit = function(model, train_df, ...) { eval(parse(text = model))(formula = y ~ ., data = train_df, ...) }
+  
+  fit_partial = partial(fit, model = model, train_df = train_df)
+  
+  ans = if (paramsplit > 1) { do.call(fit_partial, param) }
+        else { do.call(fit_partial, param) }
+  
+  ans
+  
+}
+
+#library(SmartML)
+
+runklas <- runClassifier(data_train, data_test, params = get_random_hp_config(jsons$naiveBayes), classifierAlgorithm = "naiveBayes")
+
+eval_loss <- function(model, train_df, test_df, params) {
+  
+  params_list <- eval(parse(text = paste("list(", params, ")")))
+  
+  pred <- runClassifier(trainingSet = train_df,
+                        validationSet = test_df,
+                        params = params_list,
+                        classifierAlgorithm = model)$perf
+  
+}
+
+# 
+# data_train_y <- data_test %>% rename(y = class)
+# 
+# data_test_y <- data_test %>% rename(y = class)
+# 
+# test2 <- eval_loss(model = "randomForest", train_df = data_train_y, test_df = data_test_y, params = test$answer$params)
+
+```
+
+### Which models work:
+
+```{r}
+
+library(MASS)
+
+testib_rpart <- eval_loss("rpart", train_df = data_train, test_df = data_test,
+                    params = "xval = 10,maxdepth = 20, minsplit = 15,cp = 0.002")
+
+testib_rf    <- eval_loss("randomForest", train_df = data_train, test_df = data_test,
+                    params = "ntree = 195, mtry = 20,nodesize = 25")
+
+testib_nb    <- eval_loss("naiveBayes", train_df = data_train, test_df = data_test,
+                    params = "eps = 0.015, laplace = 1")
+
+testib_bagging <- eval_loss("bagging", train_df = data_train, test_df = data_test,
+                    params = "minsplit = 20, nbagg = 25, maxdepth = 30, cp = 0.1, xval = 1")
+
+testib_fda     <- eval_loss("fda", train_df = data_train, test_df = data_test,
+                    params = "dimension = 1, method = 'mars'")
+
+testib_db      <- eval_loss("deepboost", train_df = data_train, test_df = data_test,
+                    params = "num_iter = 10, tree_depth = 5, beta = 0.001, lambda = 0.1, loss_type = 'l'")
+
+
+testib_lda     <- eval_loss("lda", train_df = data_train, test_df = data_test,
+                    params = "tol = -2, method = 'mle'")
+
+testib_c50 <- eval_loss("c50", train_df = data_train, test_df = data_test,
+                    params = "trials = 5, rules = 'TRUE', earlyStopping = 'TRUE', CF = 0.002, fuzzyThreshold = 'FALSE', minCases = 5")
+
+safe_loss <- safely(.f = eval_loss, otherwise = 0)
+
+testib_rda     <- safe_loss("rda", train_df = data_train, test_df = data_test,
+                            params = "lambda = 0, gamma = 0")
+
+testib_knn  <- eval_loss("knn", train_df = data_train, test_df = data_test,
+                            params = "k = 22")
+
+testib_svm_radial <- eval_loss("svm", train_df = data_train, test_df = data_test,
+                            params = "gamma = -4, cost = -2, tolerance = -10")
+
+
+source("runClassifier.R")
+
+
+library(SmartML)
+
+smarttest <- SmartML::autoRLearn(maxTime = 15,
+                                              directory = "~/witchcraft/inst/extdata/train_schizo.csv",
+                                              testDirectory = "~/witchcraft/inst/extdata/test_schizo.csv",
+                                  classCol = "y",
+                                  nModels = 15)
+
+```
+
+### SuccessiveHalving
+
+```{r}
+
+source("runClassifier.R")
+
+successive_halving <- function(df, i = 0, params_config, n, r, eta = 3, max_iter = 81, s_max = 4, evaluations = data.frame()) {
+  
+  if (i > s_max) {
+    
+    list("answer" = params_config, "sh_runs" = evaluations)
+    
+  } else {
+    
+    n_i = n * (eta ** -i)
+    
+    r_i = r * (eta ** i)
+  
+    r_p = r_i / max_iter
+    
+    #r_p = (80 / (s_max + 1)) * (i + 1)
+  
+    df_indexes = caret::createDataPartition(y = df$class,
+                                            p = min(r_p, 0.8),
+                                            list = F,
+                                            times = 1)
+  
+    train_df = df[df_indexes, ] %>% as_tibble()
+  
+    test_df = df[-df_indexes, ] %>% as_tibble()
+  
+    configs = params_config
+  
+    model_list = configs$model %>% as.character()
+
+    params_list = configs$params %>% as.character()
+
+     # partial_eval = possibly(.f = partial(.f = eval_loss,
+     #                         train_df = train_df,
+     #                         test_df = test_df), otherwise = 0)
+     # 
+    partial_eval = partial(.f = eval_loss,
+                           train_df = train_df,
+                           test_df = test_df)
+    
+
+    test_sample = map2(.x = model_list,
+                       .y = params_list,
+                       .f = partial_eval)
+  
+    configs$acc = test_sample
+  
+    final_df = configs %>%
+      as_tibble() %>%
+      mutate(acc = round(as.numeric(acc), 4)) %>%
+      arrange(desc(acc)) %>%
+      mutate_all(.funs = as.character()) %>%
+      mutate(budget = r_i,
+             rp = r_p)
+    
+    #cat('Stage: ', i, ' of SH ', 'results: \n', sep = "")
+    
+   # print(final_df)
+    
+  
+    
+    successive_halving(df = df,
+                       i = i + 1,
+                       params_config = final_df %>% head(n_i),
+                       n = n,
+                       r = r,
+                       eta = eta,
+                       max_iter = max_iter,
+                       s_max = s_max,
+                       evaluations = evaluations %>% bind_rows(final_df)) 
+  }
+  
+  }
+ 
+test <- successive_halving(df = data_model, params_config = sample_n_params(n = 81, model = "boosting"), n = 81, r = 1)
+
+```
+
+## Successive Ressampling Code
+
+```{r}
+
+library(ks)
+library(truncnorm)
+library(KernSmooth)
+
+  EI <- function(..., lkde, gkde) { predict(lkde, x = c(...)) / predict(gkde, x = c(...)) }
+
+  
+  f2 <- function(df) {
+    do.call("mapply", c(list, df, SIMPLIFY = FALSE, USE.NAMES=FALSE))
+  }
+  
+  coalesce_all_columns <- function(df, group_vars = NULL) {
+      
+      if (is.null(group_vars)) {
+          group_vars <- 
+              df %>%
+              purrr::keep(~ dplyr::n_distinct(.x) == 1L) %>% 
+              names()
+      }
+      
+      msk <- colnames(df) %in% group_vars
+      same_df <- df[1L, msk, drop = FALSE]
+      coal_df <- df[, !msk, drop = FALSE] %>%
+          purrr::map_dfc(na.omit)
+      
+      cbind(same_df, coal_df)
+  }
+  
+  #profvis(expr = {
+  
+  
+  samples_filtered <- test$sh_runs
+  
+  mdl <- samples_filtered$model[[1]]
+  
+  params_list <- jsons[[mdl]]$params
+
+  length_params <- length(params_list)
+  
+  biggest_budget_that_satisfies <- samples_filtered %>%
+    arrange(desc(budget), desc(acc)) %>%
+    group_by(budget) %>%
+    mutate(size = n()) %>%
+    ungroup() %>%
+    filter(size > length_params * 20/3) %>%
+    filter(budget == max(budget)) %>%
+    select(-size) %>%
+    separate(col = params,
+             into = jsons[[mdl]]$params,
+             sep = ",") %>%
+    select(-model, -rp) %>%
+    mutate_if(is.character, parse_number)
+  
+  l_samples <- biggest_budget_that_satisfies %>% top_frac(0.15, wt = acc) %>% select(-acc, -budget)
+  
+  g_samples <- biggest_budget_that_satisfies %>% top_frac(-0.85, wt = acc) %>% select(-acc,
+                                                                                      -budget)
+
+  # l_kde <- kde(l_samples, binned = FALSE)
+  # 
+  # g_kde <- kde(g_samples)
+  # 
+  l_kde_bws <- map_dbl(l_samples, dpik, scalest = "stdev")
+  
+  g_kde_bws <- map_dbl(g_samples, dpik, scalest = "stdev")
+  
+  ###
+  
+  l_kde_means <- map2_dbl(.x = l_samples, .y = l_kde_bws, .f = ~ mean(bkde(x = .x, bandwidth = .y)$x))
+    
+  g_kde_means <- map2_dbl(.x = g_samples, .y = g_kde_bws, .f = ~ mean(bkde(x = .x, bandwidth = .y)$x))
+  
+  ## trunc
+  
+  maxvals <- map_dbl(.x = params_list, .f = ~ readr::parse_number(jsons[[mdl]][[.x]]$maxVal))
+  
+  minvals <- map_dbl(.x = params_list, .f = ~ readr::parse_number(jsons[[mdl]][[.x]]$minVal)) 
+  
+  types   <- map_chr(.x = params_list, .f = ~ jsons[[mdl]][[.x]]$scale)
+  
+  partial_rtruncnorm <- function(n, a, b, mu, sigma, type) {
+    
+    case_when(type == "int"    ~ round(rtruncnorm(n = n, a = a, b = b, mean = mu, sd = sigma)),
+              type == "double" | type == "exp" ~ rtruncnorm(n = n, a = a, b = b, mean = mu, sd = sigma))
+    
+  }
+  
+   partial_dtruncnorm <- function(x, a, b, mu, sigma) {
+    
+    dtruncnorm(x = x, a = a, b = b, mean = mu, sd = sigma)
+    
+   }
+   
+  # open_convolve <- function(x, y, type = "open") { convolve(x, y, type = type) }
+
+  batch_samples <- pmap_dfc(.l = list("a" = minvals,
+                                      "b" = maxvals,
+                                      "mu" = l_kde_means,
+                                      "sigma" = l_kde_bws,
+                                      "type" = types),
+                            .f = partial_rtruncnorm,
+                            n = 81) %>%
+    set_names(nm = params_list)
+  
+  batch_samples_densities_l <- pmap_dfc(.l = list("x" = batch_samples,
+                                                  "a" = minvals,
+                                                  "b" = maxvals,
+                                                  "mu" = l_kde_means,
+                                                  "sigma" = l_kde_bws),
+                            .f = partial_dtruncnorm)
+  
+  # %>%
+    #reduce(`*`)
+  
+  batch_samples_densities_g <- pmap_dfc(.l = list("x" = batch_samples,
+                                                  "a" = minvals,
+                                                  "b" = maxvals,
+                                                  "mu" = g_kde_means,
+                                                  "sigma" = g_kde_bws),
+                            .f = partial_dtruncnorm)
+  
+  
+  
+  # %>%
+    #reduce(`*`)
+  
+  evaluate_batch_convolution <- batch_samples_densities_l / batch_samples_densities_g
+  
+  rank_sample_density <- function(samp, kdensity, n) {
+    
+    samp <- samp %>% as.data.frame()
+    
+    samp$rank <- kdensity
+    
+    sorted_samp <- samp %>% arrange(desc(rank)) %>% head(n)
+    
+    subset(sorted_samp, select = -rank)
+    
+  }
+  
+  #rsd <- rank_sample_density(samp = bs$., kdensity = bs$rank, n = 27)
+  
+  #bs$rank <- evaluate_batch_convolution$V1
+  
+  #bs <- batch_samples$V1 %>% as.data.frame()
+  
+  
+  #individual_sort <- bs %>% top_n(n = 27, wt = rank)
+    
+  #evaluate_batch <- pmap(.l = batch_samples, .f = EI, lkde = l_kde, gkde = g_kde) %>% as_vector()
+  
+  #batch_samples$EI <- evaluate_batch 
+  
+  #batch_samples$eEI <- evaluate_batch_convolution
+  
+  
+  mega_test <- map2_dfc(.x = batch_samples, .y = evaluate_batch_convolution, .f = rank_sample_density, n = 27)
+  
+  colnames(mega_test) <- params_list
+  
+  braaduts <- mega_test %>%
+    gather(key, value) %>%
+    mutate(params = paste(key, value, sep = " = ")) %>%
+    .[["params"]] %>%
+    matrix(nrow = 27, ncol = 5) %>%
+    as.data.frame() %>%
+    unite(col = "params", sep = ",") %>%
+    mutate(model = mdl)
+    
+  
+  #})
+
+
+sh_tss <- successive_halving(df = data_model, params_config = braaduts, n = 81, r = 1)
+
+```
+
+## Successive Resampling final
+
+```{r}
+
+  EI <- function(..., lkde, gkde) { predict(lkde, x = c(...)) / predict(gkde, x = c(...)) }
+
+  
+  f2 <- function(df) {
+    do.call("mapply", c(list, df, SIMPLIFY = FALSE, USE.NAMES=FALSE))
+  }
+  
+  coalesce_all_columns <- function(df, group_vars = NULL) {
+      
+      if (is.null(group_vars)) {
+          group_vars <- 
+              df %>%
+              purrr::keep(~ dplyr::n_distinct(.x) == 1L) %>% 
+              names()
+      }
+      
+      msk <- colnames(df) %in% group_vars
+      same_df <- df[1L, msk, drop = FALSE]
+      coal_df <- df[, !msk, drop = FALSE] %>%
+          purrr::map_dfc(na.omit)
+      
+      cbind(same_df, coal_df)
+  }
+  dpikSafe <- function(x, ...)
+  {
+	result <- try(dpik(x, ...), silent = TRUE)
+
+	if (class(result) == "try-error")
+	{
+		msg <- geterrmessage()
+		if (grepl("scale estimate is zero for input data", msg))
+		{
+			warning("Using standard deviation as scale estimate, probably because IQR == 0")
+			result <- try(dpik(x, scalest = "stdev", ...), silent = TRUE	)
+			
+			if (class(result) == "try-error") {
+			  
+			  msg <- geterrmessage()
+			  if (grepl("scale estimate is zero for input data", msg)) {
+			    
+			    warning("0 scale, bandwidth estimation failed. using 1e-3")
+			    result <- 1e-3
+			    
+			  }
+			  
+			}
+			
+		} else 
+		{
+			stop(msg)
+		}		
+		
+	}
+	return(result)
+  }
+  
+
+successive_resampling <- function(df, samples = 64, n = 27, bw = 1.5) {
+  
+  samples_filtered <- df
+  
+  mdl <- samples_filtered$model[[1]]
+  
+  params_list <- jsons[[mdl]]$params
+
+  length_params <- length(params_list)
+  
+  biggest_budget_that_satisfies <- samples_filtered %>%
+    arrange(desc(budget), desc(acc)) %>%
+    group_by(budget) %>%
+    mutate(size = n()) %>%
+    ungroup() %>%
+    filter(size > length_params * 20/3) %>%
+    filter(budget == max(budget)) %>%
+    select(-size) %>%
+    separate(col = params,
+             into = jsons[[mdl]]$params,
+             sep = ",") %>%
+    select(-model, -rp) %>%
+    mutate_if(is.character, parse_number)
+  
+  l_samples <- biggest_budget_that_satisfies %>% top_frac(0.15, wt = acc) %>% select(-acc, -budget)
+  
+  g_samples <- biggest_budget_that_satisfies %>% top_frac(-0.85, wt = acc) %>% select(-acc,
+                                                                                      -budget)
+
+  l_kde_bws <- map_dbl(l_samples, dpikSafe)
+  
+  g_kde_bws <- map_dbl(g_samples, dpikSafe)
+  
+  l_kde_means <- map2_dbl(.x = l_samples, .y = l_kde_bws, .f = ~ mean(bkde(x = .x, bandwidth = .y)$x))
+    
+  g_kde_means <- map2_dbl(.x = g_samples, .y = g_kde_bws, .f = ~ mean(bkde(x = .x, bandwidth = .y)$x))
+  
+  maxvals <- map_dbl(.x = params_list, .f = ~ readr::parse_number(jsons[[mdl]][[.x]]$maxVal))
+  
+  minvals <- map_dbl(.x = params_list, .f = ~ readr::parse_number(jsons[[mdl]][[.x]]$minVal)) 
+  
+  types   <- map_chr(.x = params_list, .f = ~ jsons[[mdl]][[.x]]$scale)
+  
+  partial_rtruncnorm <- function(n, a, b, mu, sigma, type) {
+    
+    case_when(type == "int"    ~ round(rtruncnorm(n = n, a = a, b = b, mean = mu, sd = sigma)),
+              type == "double" | type == "exp" ~ rtruncnorm(n = n, a = a, b = b, mean = mu, sd = sigma))
+    
+  }
+  
+   partial_dtruncnorm <- function(x, a, b, mu, sigma) {
+    
+    dtruncnorm(x = x, a = a, b = b, mean = mu, sd = sigma)
+    
+   }
+
+  batch_samples <- pmap_dfc(.l = list("a" = minvals,
+                                      "b" = maxvals,
+                                      "mu" = l_kde_means,
+                                      "sigma" = l_kde_bws,
+                                      "type" = types),
+                            .f = partial_rtruncnorm,
+                            n = samples) %>%
+  set_names(nm = params_list)
+  
+  batch_samples_densities_l <- pmap_dfc(.l = list("x" = batch_samples,
+                                                  "a" = minvals,
+                                                  "b" = maxvals,
+                                                  "mu" = l_kde_means,
+                                                  "sigma" = l_kde_bws),
+                            .f = partial_dtruncnorm)
+  
+  batch_samples_densities_g <- pmap_dfc(.l = list("x" = batch_samples,
+                                                  "a" = minvals,
+                                                  "b" = maxvals,
+                                                  "mu" = g_kde_means,
+                                                  "sigma" = g_kde_bws),
+                            .f = partial_dtruncnorm)
+  
+  evaluate_batch_convolution <- batch_samples_densities_l / batch_samples_densities_g
+  
+  rank_sample_density <- function(samp, kdensity, n) {
+    
+    samp <- samp %>% as.data.frame()
+    
+    samp$rank <- kdensity
+    
+    sorted_samp <- samp %>% arrange(desc(rank)) %>% head(n)
+    
+    subset(sorted_samp, select = -rank)
+    
+  }
+  
+  mega_test <- map2_dfc(.x = batch_samples, .y = evaluate_batch_convolution, .f = rank_sample_density, n = n)
+  
+  colnames(mega_test) <- params_list
+  
+  braaduts <- mega_test %>%
+    gather(key, value) %>%
+    mutate(params = paste(key, value, sep = " = ")) %>%
+    .[["params"]] %>%
+    matrix(nrow = n, ncol = length(params_list)) %>%
+    as.data.frame() %>%
+    unite(col = "params", sep = ",") %>%
+    mutate(model = mdl) %>%
+    select(model, params)
+  
+}
+
+succ_samp <- successive_resampling(df = test$sh_runs)
+
+
+```
+
+### Hyperband, without bayesian opt
+
+```{r}
+
+hyperband <- function(df, model, max_iter = 81, eta = 3) {
+
+  logeta = as_mapper(~ log(.x) / log(eta))
+
+  s_max = trunc(logeta(max_iter))
+
+  B = (s_max + 1) * max_iter
+
+  nrs = map_dfc(s_max:0, .f = ~ calc_n_r(max_iter, eta, .x, B)) %>%
+    t() %>%
+    `colnames<-`(value = c("n", "r")) %>%
+    as_tibble()
+
+  nrs$s = s_max:0
+  
+  partial_halving <- function(n, r, s) {
+    
+    successive_halving(df = df,
+                       params_config = sample_n_params(n = n, model = model),
+                       n = n,
+                       r = r,
+                       s_max = s,
+                       max_iter = max_iter,
+                       eta = eta)
+    
+  }
+  
+  pmap(.l = nrs,
+       .f = partial_halving)
+
+}
+
+test_hb <- hyperband(df = data_model, model = "boosting") %>% map_dfr(.f = ~ .x[["answer"]])
+
+```
+
+### Hyperband, with bayesian opt but soft.
+
+```{r}
+
+bohb_soft <- function(df, model, max_iter = 81, eta = 3) {
+
+  logeta = as_mapper(~ log(.x) / log(eta))
+
+  s_max = trunc(logeta(max_iter))
+
+  B = (s_max + 1) * max_iter
+
+  nrs = map_dfc(s_max:0, .f = ~ calc_n_r(max_iter, eta, .x, B)) %>%
+    t() %>%
+    `colnames<-`(value = c("n", "r")) %>%
+    as_tibble()
+
+  nrs$s = s_max:0
+  
+  random_sh = successive_halving(df = df,
+                                 params_config = sample_n_params(n = as.numeric(nrs[1, 1]), model = model),
+                                 n = as.numeric(nrs[1, 1]),
+                                 r = as.numeric(nrs[1, 2]),
+                                 s_max = as.numeric(nrs[1, 3]),
+                                 max_iter = max_iter,
+                                 eta = eta)
+  
+  liszt = vector(mode = "list",
+                 length = max(nrs$s) + 1)
+  
+  liszt[[1]] <- random_sh
+  
+  for (row in 2:nrow(nrs)) {
+    
+    cat(' \n got here \n')
+    
+    bayesian_opt_samples = successive_resampling(df = liszt[[row - 1]]$sh_runs,
+                                                 samples = 256,
+                                                 n = nrs[[row, 1]] * 0.85,
+                                                 bw = 3)
+    
+    print(bayesian_opt_samples)
+    
+    liszt[[row]] <- successive_halving(df = df,
+                                       params_config = bayesian_opt_samples %>% bind_rows(sample_n_params(n = max(nrs[[row, 1]] * 0.15, 1), model = model)),
+                                       n = as.numeric(nrs[row, 1]),
+                                       r = as.numeric(nrs[row, 2]),
+                                       s_max = as.numeric(nrs[row, 3]),
+                                       max_iter = max_iter,
+                                       eta = eta)
+    
+  }
+  
+  liszt
+
+}
+
+test_bohb_soft <- bohb_soft(df = data_model, model = "rda") %>% map_dfr(.f = ~ .x[["answer"]])
+
+```
+
+### Hyperband, with hard bayesian opt
+
+```{r}
+
+library(ks)
+library(truncnorm)
+
+bohb_hard <- function(df, model, max_iter = 81, eta = 3, bw = 3) {
+
+  logeta = as_mapper(~ log(.x) / log(eta))
+
+  s_max = trunc(logeta(max_iter))
+
+  B = (s_max + 1) * max_iter
+
+  nrs = map_dfc(s_max:0, .f = ~ calc_n_r(max_iter, eta, .x, B)) %>%
+    t() %>%
+    `colnames<-`(value = c("n", "r")) %>%
+    as_tibble()
+
+  nrs$s = s_max:0
+  
+  random_sh = successive_halving(df = df,
+                                 params_config = sample_n_params(n = as.numeric(nrs[1, 1]), model = model),
+                                 n = as.numeric(nrs[1, 1]),
+                                 r = as.numeric(nrs[1, 2]),
+                                 s_max = as.numeric(nrs[1, 3]),
+                                 max_iter = max_iter,
+                                 eta = eta)
+  
+  
+  #mdl <- random_sh$answer$model[[1]]
+  
+  length_params <- length(jsons[[model]]$params)
+  
+  runs_df = random_sh$sh_runs %>%
+    distinct() %>%
+    arrange(desc(budget), desc(acc)) %>%
+    group_by(budget) %>%
+    mutate(size = n()) %>%
+    ungroup() %>%
+    filter(size > length_params * 20/3) %>%
+    filter(budget == max(budget)) %>%
+    select(-size)
+    
+  
+  liszt = vector(mode = "list",
+                 length = max(nrs$s) + 1)
+  
+  liszt[[1]] <- random_sh
+  
+  for (row in 2:nrow(nrs)) {
+    
+    print(nrs[[row, 1]] * 0.7)
+    
+    print(nrs[[row, 1]] * 0.3)
+    
+    bayesian_opt_samples = successive_resampling(df = runs_df,
+                                                 samples = 256,
+                                                 n = round(max(nrs[[row, 1]] * 0.7, 1)),
+                                                 bw = bw)
+    
+    
+    current_sh_run = successive_halving(df = df,
+                       params_config = bayesian_opt_samples %>% bind_rows(sample_n_params(n = round(max(nrs[[row, 1]] * 0.3, 1)), model = model)),
+                       n = nrs[[row, 1]],
+                       r = nrs[[row, 2]],
+                       s_max = nrs[[row, 3]],
+                       max_iter = max_iter,
+                       eta = eta)
+    
+    liszt[[row]] = current_sh_run
+    
+    runs_df = runs_df %>%
+      bind_rows(current_sh_run$sh_run) %>%
+      distinct() %>%
+      arrange(desc(budget), desc(acc)) %>%
+      group_by(budget) %>%
+      mutate(size = n()) %>%
+      ungroup() %>%
+      filter(size > length_params * 20/3) %>%
+      filter(budget == max(budget)) %>%
+      select(-size)
+    
+  }
+  
+  liszt
+
+
+}
+
+
+test_bohb_hard <- bohb_hard(df = data_model, model = "boosting") %>% map_dfr(.f = ~ .x[["answer"]])
+
+mult_runs <- microbenchmark::microbenchmark(bohb_hard(df = data_model, model = "boosting", bw = 1.5) %>% map_dfr(.f = ~ .x[["answer"]]),
+                                            hyperband(df = data_model, model = "boosting") %>% map_dfr(.f = ~ .x[["answer"]]))
+
+rep_bohb_nobw <- replicate(n = 100, expr = max((bohb_hard(df = data_model, model = "boosting", bw = 1) %>% map_dfr(.f = ~ .x[["answer"]]))$acc))
+ 
+rep_bohb_lowbw <- replicate(n = 100, expr = max((bohb_hard(df = data_model, model = "boosting", bw = 2) %>% map_dfr(.f = ~ .x[["answer"]]))$acc))
+
+rep_bohb_highbw <- replicate(n = 100, expr = max((bohb_hard(df = data_model, model = "boosting", bw = 3) %>% map_dfr(.f = ~ .x[["answer"]]))$acc))
+
+rep_bohb_highbudgetbw <- replicate(n = 100, expr = max((bohb_hard(df = data_model, model = "boosting", bw = 3, max_iter = 324) %>% map_dfr(.f = ~ .x[["answer"]]))$acc))
+
+rep_bohb_highbudgetlowbw <- replicate(n = 100, expr = max((bohb_hard(df = data_model, model = "boosting", bw = 1, max_iter = 324) %>% map_dfr(.f = ~ .x[["answer"]]))$acc))
+  
+rep_hb <- replicate(n = 100, expr = max((hyperband(df = data_model, model = "boosting") %>% map_dfr(.f = ~ .x[["answer"]]))$acc))
+
+rep_hb_highbudget <- replicate(n = 100, expr = max((hyperband(df = data_model, model = "boosting", max_iter = 324) %>% map_dfr(.f = ~ .x[["answer"]]))$acc))
+
+mb <- microbenchmark::microbenchmark(max((bohb_hard(df = data_model, model = "boosting", bw = 1.5) %>% map_dfr(.f = ~ .x[["answer"]]))$acc),
+                                     max((hyperband(df = data_model, model = "boosting") %>% map_dfr(.f = ~ .x[["answer"]]))$acc))
+
+#test_bohb_hard <- max((bohb_hard(df = data_model, model = "boosting") %>% map_dfr(.f = ~ .x[["answer"]]))$acc)
+
+## Tests
+
+start <- as.numeric(Sys.time())
+duration <- 600
+results = NULL
+while(as.numeric(Sys.time()) - start < duration) {
+  
+  results <- c(list(max((bohb_hard(df = data_model, model = "rda") %>% map_dfr(.f = ~ .x[["answer"]]))$acc)), results)
+  
+}
+
+
+hb_test <- results %>% flatten_dbl()
+
+hb_hard_small_bw <- results %>% flatten_dbl
+
+hb_hard <- results %>% flatten_dbl()
+
+sh_test <- results
+
+# bohb_hard_test <- replicate(25, expr = max((bohb_hard(df = data_model) %>% map_dfr(.f = ~ .x[["answer"]]))$acc))
+# 
+# bohb_soft_test <- replicate(25, expr = max((bohb_soft(df = data_model) %>% map_dfr(.f = ~ .x[["answer"]]))$acc))
+#   
+# hb_test <- replicate(25, expr = max((hyperband(df = data_model) %>% map_dfr(.f = ~ .x[["answer"]]))$acc))
+
+library(hrbrthemes)
+
+accumulated_hb_highbudget <- purrr::accumulate(.x = rep_hb_highbudget, .f = ~ max(.x, .y))
+
+accumulated_hb_highbudgetbw <- purrr::accumulate(.x = rep_bohb_highbudgetbw, .f = ~ max(.x, .y))
+
+accumulated_hb_highbudgetlowbw <- purrr::accumulate(.x = rep_bohb_highbudgetlowbw, .f = ~ max(.x, .y))
+
+accumulated_hb_threebw <- purrr::accumulate(.x = rep_bohb_highbw, .f = ~ max(.x, .y))
+
+accumulate_hb_twobw  <- purrr::accumulate(.x = rep_bohb_lowbw, .f = ~ max(.x, .y))
+
+accumulate_hb_onebw  <- purrr::accumulate(.x = rep_bohb_nobw, .f = ~ max(.x, .y))
+
+accumulate_hb       <- purrr::accumulate(.x = rep_hb, .f = ~ max(.x, .y))
+
+ggplot() +
+  geom_line(mapping = aes(x = 1:length(accumulated_hb_highbudgetbw),
+                          y = 1 - accumulated_hb_highbudgetbw,
+                          color = "High budget and bw")) +
+  geom_line(mapping = aes(x = 1:length(accumulated_hb_highbudgetlowbw),
+                          y = 1 - accumulated_hb_highbudgetlowbw,
+                          color = "High budget and low bw")) +
+  geom_line(mapping = aes(x = 1:length(accumulated_hb_highbudget),
+                          y = 1 - accumulated_hb_highbudget,
+                          color = "High budget Hyperband")) +
+  geom_line(mapping = aes(x = 1:length(accumulated_hb_threebw),
+                          y = 1 - accumulated_hb_threebw,
+                          color = "High bw")) +
+  geom_line(mapping = aes(x = 1:length(accumulate_hb_twobw),
+                          y = 1 - accumulate_hb_twobw,
+                          color = "Small bw")) +
+  geom_line(mapping = aes(x = 1:length(accumulate_hb_onebw),
+                          y = 1 - accumulate_hb_onebw,
+                          color = "No bw")) +
+  geom_line(mapping = aes(x = 1:length(accumulate_hb),
+                          y = 1 - accumulate_hb,
+                          color = "Hyperband")) +
+  scale_color_ipsum(name = "Algorithm") +
+  theme_ipsum() +
+  xlab("Runs") +
+  ylab("Regret")
+  #scale_x_continuous(breaks = c(1, 122, 422))
+  
+
+```
+

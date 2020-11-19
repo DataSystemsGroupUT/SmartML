@@ -48,43 +48,6 @@ Manual for the SmartML R package can be found <a href = "https://github.com/Data
 ---
 ## Example
 
-This is a basic example which shows you how to run SmartML simply:
-
-```{r}
-library(SmartML)
-```
-
-```{r, warning = FALSE, results = 'hide'}
-#' Option 1 = Classifier Selection Only, apply PCA as a preprocessing step with 4 components, get two candidate models as output only, and impute missing values using median/mode
-result1 <- autoRLearn(1, system.file("extdata", "shuttle/train.arff", package = "SmartML"), system.file("extdata", "shuttle/train.arff", package = "SmartML"), option = 1, preProcessF = 'pca', nComp = 4, nModels = 2, missingOpr = FALSE) #option 1 runs for Classifier Algorithm Selection Only
-```
-```{r, warning = FALSE}
-result1$clfs  #Vector of recommended nModels classifiers
-result1$params #Vector of initial suggested parameter configurations of nModels recommended classifiers
-```
-```{r, warning=FALSE}
-#Use recommended model to train over training data and make predictions over test data
-resultRun <- runClassifier(result1$TRData, result1$TEData, result1$params[[1]], result1$clfs[[1]])
-resultRun$perf #model performance on test set
-```
-
-```{r, warning = FALSE, results = 'hide', eval=FALSE}
-#' Option 2 = Both Classifier Selection and Parameter Optimization
-result2 <- autoRLearn(10, system.file("extdata", "shuttle/train.arff", package = "SmartML"), system.file("extdata", "shuttle/test.arff", package = "SmartML")) # Option 2 runs for both classifier algorithm selection and parameter tuning for 10 minutes.
-result2$clfs #best classifier found
-result2$params #parameter configuration for best classifier
-result2$perf #performance of chosen classifier on testing set after fitting on whole training set
-```
-
-```{r, warning = FALSE, results = 'hide', eval=FALSE}
-#' Option 2 = Both Classifier Selection and Parameter Optimization, use 20% validation set from training set, and select only 2 classifiers to be tuned.
-result3 <- autoRLearn(3, system.file("extdata", "car/train.arff", package = "SmartML"), system.file("extdata", "car/test.arff", package = "SmartML"), vRatio = 0.2, nModels = 2) # Option 2 runs for both classifier algorithm selection and parameter tuning for 3 minute.
-
-result3$clfs #best classifier found
-result3$params #parameter configuration for best classifier
-result3$perf #performance of chosen classifier on testing set
-```
-
 ---
 ## Contribution GuideLines to SmartML
 To Contribute to `SmartML`, Please Follow these <a href = "https://github.com/DataSystemsGroupUT/SmartML/blob/master/CONTRIBUTE.md"> GuideLines </a>

@@ -11,8 +11,9 @@ autoRLearn_(
   models = c("randomForest", "naiveBayes", "boosting", "l2-linear-classifier", "svm"),
   optimizationAlgorithm = "hyperband",
   bw = 3,
+  kde_type = "single",
   max_iter = 81,
-  kde_type = "single"
+  metric = "acc"
 )
 }
 \arguments{
@@ -20,7 +21,7 @@ autoRLearn_(
 
 \item{df_test}{Dataframe of the test dataset. Assumes it is in perfect shape with all numeric variables and factor response variable named "class".}
 
-\item{maxTime}{Float representing the maximum time the algorithm should be run (seconds).}
+\item{maxTime}{Float representing the maximum time the algorithm should be run (in minutes).}
 
 \item{models}{List of strings denoting which algorithms to use for the process:
 \itemize{
@@ -40,18 +41,29 @@ autoRLearn_(
 
 \item{bw}{- (only applies to BOHB) Double representing how much should the KDE bandwidth be widened. Higher values allow the algorithm to explore more hyperparameter combinations}
 
-\item{max_iter}{- (affects both hyperband and BOHB) Integer representing the maximum number of iterations that one successive halving run can have}
-
 \item{kde_type}{- (only applies to BOHB) String representing whether a model's hyperparameters should be tuned individually of each other or have their probability densities multiplied:
 \itemize{
 \item "single" - each hyperparameter has its own expected improvement calculated
 \item "mixed" - all hyperparameters' probabilty densities are multiplied and only one mixed expected improvement is calculated
 }}
+
+\item{max_iter}{- (affects both hyperband and BOHB) Integer representing the maximum number of iterations that one successive halving run can have}
+
+\item{metric}{String of the evaluation metric to be used in the model performance optimization:
+\itemize{
+\item "acc" - Accuracy,
+\item "avg-fscore" - Average of F-Score of each label,
+\item "avg-recall" - Average of Recall of each label,
+\item "avg-precision" - Average of Precision of each label,
+\item "fscore" - Micro-Average of F-Score of each label,
+\item "recall" - Micro-Average of Recall of each label,
+\item "precision" - Micro-Average of Precision of each label.
+}}
 }
 \value{
 List of Results
 \itemize{
-\item \code{perf} - accuracy of the best performing model on the test data
+\item \code{perf} - Evaluated metric of the best performing model on the test data
 \item \code{pred} - prediction on the test data using the best model
 \item \code{model} - best model object
 \item \code{best_models} - table with the best hyperparameters found for the selected models.

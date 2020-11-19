@@ -1,0 +1,22 @@
+{
+	"params":["maxdepth", "minsplit"],
+	"parents":["maxdepth", "minsplit"],
+	"maxdepth":
+	{
+		"type":"continuous",
+		"scale":"int",
+		"minVal":"1",
+		"maxVal":"30",
+		"default":"6",
+		"constraint":"any"
+	},
+	"minsplit":
+	{
+		"type":"continuous",
+		"scale":"int",
+		"minVal":"1",
+		"maxVal":"30",
+		"default":"10",
+		"constraint":"any"
+	}
+}

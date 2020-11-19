@@ -1,0 +1,496 @@
+---
+title: "dataset_tests"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Schyzo test
+
+```{r}
+
+library(tidyverse)
+library(caret)
+
+### Schyzo, binary.
+
+data_schyzo <- read_csv(file = "~/witchcraft/inst/extdata/schizo.csv") %>%
+ mutate_at(.vars = vars(gain_ratio_1:gain_ratio_11),
+           .funs = ~ as.numeric(.)) %>%
+ mutate_if(is.character, as.factor)
+
+preproc_schyzo <- data_schyzo %>%
+  caret::preProcess(method = c("medianImpute", "center", "scale", "zv", "corr"))
+
+data_schyzo_final <- data_schyzo %>%
+  dplyr::select(-class) %>%
+  predict(dummyVars(~ ., data = ., drop2nd = T), .) %>%
+  predict(preproc_schyzo, .) %>%
+  as.data.frame() %>%
+  bind_cols(data_schyzo %>% select(class))
+
+split_schyzo <- caret::createDataPartition(y = data_schyzo_final$class,
+                                    times = 1,
+                                    list = F)
+
+data_schyzo_train <- data_schyzo_final[split_schyzo,]
+
+data_schyzo_test <- data_schyzo_final[-split_schyzo,]
+
+### 2 mins test
+
+test_schyzo_bohb <- autoRLearn_(df_train = data_schyzo_train,
+                                df_test = data_schyzo_test,
+                                optimizationAlgorithm = "bohb",
+                                models = "naiveBayes",
+                                maxTime = 2)
+
+test_schyzo_hb <- autoRLearn_(df_train = data_schyzo_train,
+                              df_test = data_schyzo_test,
+                              optimizationAlgorithm = "hyperband",
+                              models = c("naiveBayes", "randomForest", "boosting", "svm", "l2-linear-classifier"),
+                              maxTime = 2)
+
+test_schyzo_smac <- SmartML::autoRLearn(maxTime = 2, directory = "~/witchcraft/inst/extdata/train_schizo.csv",
+                                              testDirectory = "~/witchcraft/inst/extdata/test_schizo.csv",
+                                 classCol = "y",
+                                 nModels = 5)
+
+gc()
+rm(data_schyzo, preproc_schyzo, data_schyzo_final, split_schyzo, data_schyzo_train, data_schyzo_test, test_schyzo_bohb, test_schyzo_hb, test_schyzo_smac)
+
+```
+
+## Teaching assistant hard dataset
+
+```{r, warning=F, echo=F}
+
+data_ta <- read_csv(file = "~/witchcraft/inst/extdata/tae.data", col_names = F) %>%
+ mutate(X5 = as.numeric(X5)) %>%
+ mutate_at(.vars = vars(X1, X2, X3, X4, X6),
+           .funs = as.factor) %>%
+ rename(class = X6)
+
+preproc_ta <- data_ta %>%
+  caret::preProcess(method = c("medianImpute", "center", "scale", "nzv", "corr"))
+
+data_ta_final <- data_ta %>%
+  dplyr::select(-class) %>%
+  predict(dummyVars(~ ., data = ., drop2nd = T), .) %>%
+  predict(preproc_ta, .) %>%
+  as.data.frame() %>%
+  bind_cols(data_ta %>%  select(class))
+
+split_ta <- caret::createDataPartition(y = data_ta_final$class,
+                                    times = 1,
+                                    list = F,
+                                    p = 0.8)
+
+data_ta_train <- data_ta_final[split_ta,]
+
+data_ta_test <- data_ta_final[-split_ta,]
+
+test_ta_bohb <- autoRLearn_(df_train = data_ta_train,
+                            df_test = data_ta_test,
+                            models = c("naiveBayes", "randomForest", "boosting", "svm", "naiveBayes", "l2-linear-classifier"),
+                            optimizationAlgorithm = "bohb",
+                            maxTime = 2,
+                            max_iter = 81)
+
+test_ta_hb <- autoRlearn_(df_train = data_ta_train,
+                          df_test = data_ta_test,
+                          optimizationAlgorithm = "hyperband",
+                          models = c("naiveBayes", "randomForest", "boosting", "svm", "naiveBayes", "l2-linear-classifier"),
+                          maxTime = 2,
+                          max_iter = 81)
+
+test_ta_smac <- SmartML::autoRLearn(maxTime = 2, directory = "~/witchcraft/inst/extdata/ta_train.csv",
+                                              testDirectory = "~/witchcraft/inst/extdata/ta_test.csv",
+                                 classCol = "class",
+                                 nModels = 5)
+
+gc()
+rm(data_schyzo, preproc_schyzo, data_schyzo_final, split_schyzo, data_schyzo_train, data_schyzo_test, test_schyzo_bohb, test_schyzo_hb, test_schyzo_smac)
+
+```
+
+## Bach
+
+```{r}
+
+data_bach <- read_csv(file = "~/witchcraft/inst/extdata/jsbach_chorals_harmony.data", col_names = F) %>%
+ select(-X1) %>%
+ mutate(X2 = as.numeric(X2)) %>%
+ mutate_at(.vars = vars(X3:X14),
+           .funs = ~ case_when(
+             .x == "YES" ~ 1,
+             TRUE ~ 0)) %>%
+ mutate_at(.vars = vars(X15, X16, X17),
+           .funs = as.factor) %>%
+ rename(class = X17)
+
+preproc_bach <- data_bach %>%
+  caret::preProcess(method = c("medianImpute", "center", "scale", "nzv", "corr"))
+
+data_bach_final <- data_bach %>%
+  dplyr::select(-class) %>%
+  predict(dummyVars(~ ., data = ., drop2nd = T), .) %>%
+  predict(preproc_bach, .) %>%
+  as.data.frame() %>%
+  bind_cols(data_bach %>%  select(class)) %>%
+  `colnames<-`(value = append(1:(ncol(.) - 1) %>% map_chr(.f = ~ paste("X", .x, sep = "")), "class"))
+
+split_bach <- suppressWarnings(caret::createDataPartition(y = data_bach_final$class,
+                                    times = 1,
+                                    list = F,
+                                    p = 0.8))
+
+data_bach_train <- data_bach_final[split_bach,]
+
+data_bach_test <- data_bach_final[-split_bach,]
+
+test_bach_bohb <- autoRlearn_(df_train = data_bach_train, df_test = data_bach_test,
+                            optimizationAlgorithm = "bohb",
+                            maxTime = 5,
+                            models = c("randomForest", "boosting", "svm", "naiveBayes", "l2-linear-classifier")))
+
+test_bach_hb <-(autoRlearn_(df_train = data_bach_train, df_test = data_bach_test,
+                            optimizationAlgorithm = "hyperband",
+                            maxTime = 5,
+                            models = c("randomForest", "boosting", "svm", "naiveBayes", "l2-linear-classifier")))
+
+test_bach_smac <- SmartML::autoRLearn(maxTime = 10, directory = "~/witchcraft/inst/extdata/batch_train.csv",
+                                              testDirectory = "~/witchcraft/inst/extdata/batch_test.csv",
+                                 classCol = "class",
+                                 nModels = 5)
+
+
+```
+
+## Dota 
+
+```{r}
+
+data_dota <- read_csv("~/witchcraft/inst/extdata/dota2Train.csv",
+                      col_names = F) %>%
+  rename(class = X1) %>%
+  mutate_at(vars(class:X4), as.factor) %>%
+  mutate_if(.predicate = ~ !is.factor(.x), .funs = as.numeric) %>%
+  select(-X2) %>%
+  sample_frac(0.1)
+
+preproc_dota <- data_dota %>%
+  caret::preProcess(method = c("medianImpute", "center", "scale", "nzv", "corr"))
+
+preproc_dumvars <- dummyVars("class ~ .", data = data_dota)
+
+data_dota_final <- data_dota %>%
+  predict(preproc_dumvars, .) %>%
+  as.data.frame() %>%
+  bind_cols(data_dota %>% select(class),.) %>%
+  predict(preproc_dota, .)
+
+split_dota <- suppressWarnings(caret::createDataPartition(y = data_dota_final$class,
+                                    times = 1,
+                                    list = F,
+                                    p = 0.8))
+
+data_dota_train <- data_dota_final[split_dota,]
+
+data_dota_test <- data_dota_final[-split_dota,]
+
+test_dota_bohb <- autoRlearn_(df_train = data_dota_train, df_test = data_dota_test,
+                            optimizationAlgorithm = "bohb",
+                            maxTime = 10,
+                            models = c("randomForest", "boosting", "svm", "naiveBayes", "l2-linear-classifier"))
+
+test_dota_hb <-autoRlearn_(df_train = data_dota_train, df_test = data_dota_test,
+                            optimizationAlgorithm = "hyperband",
+                            maxTime = 10,
+                            models = c("randomForest", "boosting", "svm", "naiveBayes", "l2-linear-classifier"))
+
+test_dota_smac <- SmartML::autoRLearn(maxTime = 10, directory = "~/witchcraft/inst/extdata/dota_train.csv",
+                                              testDirectory = "~/witchcraft/inst/extdata/dota_test.csv",
+                                 classCol = "class",
+                                 nModels = 5)
+
+```
+
+## Mushroom
+
+```{r}
+
+data_mushroom <- read_csv("~/witchcraft/inst/extdata/mushroom.data",
+                      col_names = F) %>%
+  rename(class = X1) %>%
+  mutate_all(as.factor) %>%
+  select(-X7, -X17)
+
+preproc_mushroom <- data_mushroom %>%
+  caret::preProcess(method = c("medianImpute", "center", "scale", "nzv", "corr"))
+
+preproc_dumvars <- dummyVars("class ~ .", data = data_mushroom)
+
+data_mushroom_final <- data_mushroom %>%
+  predict(preproc_dumvars, .) %>%
+  as.data.frame() %>%
+  bind_cols(data_mushroom %>% select(class),.) %>%
+  predict(preproc_mushroom, .)
+
+split_mushroom <- suppressWarnings(caret::createDataPartition(y = data_mushroom_final$class,
+                                    times = 1,
+                                    list = F,
+                                    p = 0.8))
+
+data_mushroom_train <- data_mushroom_final[split_mushroom,]
+
+data_mushroom_test <- data_mushroom_final[-split_mushroom,]
+
+test_mushroom_bohb <- autoRlearn_(df_train = data_mushroom_train, df_test = data_mushroom_test,
+                            optimizationAlgorithm = "bohb",
+                            maxTime = 10,
+                            models = c("randomForest", "boosting", "svm", "naiveBayes", "l2-linear-classifier"))
+
+test_mushroom_hb <-autoRlearn_(df_train = data_mushroom_train, df_test = data_mushroom_test,
+                            optimizationAlgorithm = "hyperband",
+                            maxTime = 10,
+                            models = c("randomForest", "boosting", "svm", "naiveBayes", "l2-linear-classifier"))
+
+test_mushroom_smac <- SmartML::autoRLearn(maxTime = 10, directory = "~/witchcraft/inst/extdata/mushroom_train.csv",
+                                              testDirectory = "~/witchcraft/inst/extdata/mushroom_test.csv",
+                                 classCol = "class",
+                                 nModels = 5)
+
+```
+
+## Theorem proving
+
+```{r}
+
+library(BBmisc)
+
+data_theorem <- read_csv("~/witchcraft/inst/extdata/train_theorem.csv", col_names = F) %>%
+  bind_rows(read_csv("~/witchcraft/inst/extdata/test_theorem.csv", col_names = F)) %>%
+  #rowwise() %>%
+  mutate_at(.vars = vars(X52, X53, X54, X55, X56, X57), .f = ~ case_when(.x == 1 ~ TRUE,
+                                                                         .x == -1 ~ FALSE))
+
+data_theorem_y <- data_theorem %>%
+  select_at(vars(X52:X57)) %>%
+  pmap(.f = ~ which.first(x = c(...)), use.names = F) %>%
+  flatten_dbl()
+
+data_theorem_final <- data_theorem %>%
+  select(-X52, -X53, -X54, -X55, -X56, -X57)
+
+data_theorem_final$class <- data_theorem_y
+
+split_theorem <- suppressWarnings(caret::createDataPartition(y = data_theorem_final$class,
+                                    times = 1,
+                                    list = F,
+                                    p = 0.8))
+
+data_theorem_train <- data_theorem_final[split_theorem,]
+
+data_theorem_test <- data_theorem_final[-split_theorem,]
+
+test_theorem_hb <- autoRlearn_(df_train = data_theorem_train, df_test = data_theorem_test,
+                            optimizationAlgorithm = "hb",
+                            maxTime = 10,
+                            models = c("randomForest", "boosting", "svm", "naiveBayes", "l2-linear-classifier"))
+
+test_theorem_bohb <- autoRlearn_(df_train = data_theorem_train, df_test = data_theorem_test,
+                            optimizationAlgorithm = "bohb",
+                            maxTime = 10,
+                            models = c("randomForest", "boosting", "svm", "naiveBayes", "l2-linear-classifier"))
+
+test_theorem_smac <- SmartML::autoRLearn(maxTime = 10, directory = "~/witchcraft/inst/extdata/theorem_train.csv",
+                                              testDirectory = "~/witchcraft/inst/extdata/theorem_test.csv",
+                                 classCol = "class",
+                                 nModels = 5)
+  
+```
+
+## tic tac toe
+
+```{r}
+
+data_tictactoe <- read_csv("~/witchcraft/inst/extdata/tic-tac-toe.data", col_names = F) %>%
+  rename(class = X10)
+
+preproc_tictactoe <- dummyVars("class ~ .", data_tictactoe)
+
+data_tictactoe_final <- data_tictactoe %>%
+  predict(preproc_tictactoe, .) %>%
+  as.data.frame() %>%
+  bind_cols(data_tictactoe %>% select(class))
+
+split_tictactoe <- suppressWarnings(caret::createDataPartition(y = data_tictactoe_final$class,
+                                    times = 1,
+                                    list = F,
+                                    p = 0.8))
+
+data_tictactoe_train <- data_tictactoe_final[split_tictactoe,]
+
+data_tictactoe_test <- data_tictactoe_final[-split_tictactoe,]
+
+test_tictactoe_hb <- autoRlearn_(df_train = data_tictactoe_train, df_test = data_tictactoe_test,
+                            optimizationAlgorithm = "hb",
+                            maxTime = 10,
+                            models = c("randomForest", "boosting", "svm", "naiveBayes", "l2-linear-classifier"))
+
+test_tictactoe_bohb <- autoRlearn_(df_train = data_tictactoe_train, df_test = data_tictactoe_test,
+                            optimizationAlgorithm = "bohb",
+                            maxTime = 10,
+                            models = c("randomForest", "boosting", "svm", "naiveBayes", "l2-linear-classifier"))
+
+test_tictactoe_smac <- SmartML::autoRLearn(maxTime = 10, directory = "~/witchcraft/inst/extdata/tictactoe_train.csv",
+                                              testDirectory = "~/witchcraft/inst/extdata/tictactoe_test.csv",
+                                 classCol = "class",
+                                 nModels = 5) 
+
+
+```
+
+## Anneal
+
+```{r}
+
+data_anneal <- read_csv("~/witchcraft/inst/extdata/anneal.data", col_names = F) %>%
+  rename(class = X39) %>%
+  mutate_at(.vars = vars(X4, X5, X9), .funs = as.numeric) %>%
+  select(-X38, -X31, -X30, -X29, -X27, -X26, -X24, -X23, 
+         -X21, -X19, -X14, -X11, -X2) %>%
+  mutate_if(is.character, as.factor)
+
+preproc_anneal <- data_anneal %>%
+  caret::preProcess(method = c("medianImpute", "center", "scale", "nzv", "corr"))
+
+preproc_dumvars <- dummyVars("class ~ .", data = data_anneal)
+
+data_anneal_final <- data_anneal %>%
+  predict(preproc_dumvars, .) %>%
+  as.data.frame() %>%
+  bind_cols(data_anneal %>% select(class))
+
+split_anneal <- suppressWarnings(caret::createDataPartition(y = data_anneal_final$class,
+                                    times = 1,
+                                    list = F,
+                                    p = 0.8))
+
+data_anneal_train <- data_anneal_final[split_anneal,]
+
+data_anneal_test <- data_anneal_final[-split_anneal,]
+
+test_anneal_hb <- autoRlearn_(df_train = data_anneal_train, df_test = data_anneal_test,
+                            optimizationAlgorithm = "hb",
+                            maxTime = 10,
+                            models = c("randomForest", "boosting", "svm", "naiveBayes", "l2-linear-classifier"))
+
+test_anneal_bohb <- autoRlearn_(df_train = data_anneal_train, df_test = data_anneal_test,
+                            optimizationAlgorithm = "bohb",
+                            maxTime = 10,
+                            models = c("randomForest", "boosting", "svm", "naiveBayes", "l2-linear-classifier"))
+
+test_anneal_smac <- SmartML::autoRLearn(maxTime = 10, directory = "~/witchcraft/inst/extdata/anneal_train.csv",
+                                              testDirectory = "~/witchcraft/inst/extdata/anneal_test.csv",
+                                 classCol = "class",
+                                 nModels = 5) 
+
+
+```
+
+## Messidor
+
+```{r}
+
+library(farff)
+
+data_messidor <- readARFF(path = "~/witchcraft/inst/extdata/messidor_features.arff") %>%
+  mutate_at(vars(0, 1, Class, 18), as.factor) %>%
+  rename(class = Class)
+
+preproc_messidor <- data_messidor %>%
+  caret::preProcess(method = c("medianImpute", "center", "scale", "nzv", "corr"))
+
+preproc_dumvars <- dummyVars("class ~ .", data = data_messidor)
+
+data_messidor_final <- data_messidor %>%
+  predict(preproc_dumvars, .) %>%
+  as.data.frame() %>%
+  bind_cols(data_messidor %>% select(class))
+
+split_messidor <- suppressWarnings(caret::createDataPartition(y = data_messidor_final$class,
+                                    times = 1,
+                                    list = F,
+                                    p = 0.8))
+
+data_messidor_train <- data_messidor_final[split_messidor,]
+
+data_messidor_test <- data_messidor_final[-split_messidor,]
+
+
+test_messidor_hb <- autoRlearn_(df_train = data_messidor_train, df_test = data_messidor_test,
+                            optimizationAlgorithm = "hyperband",
+                            maxTime = 10,
+                            models = c("randomForest", "boosting", "svm", "naiveBayes", "l2-linear-classifier"))
+
+test_messidor_hb <- autoRlearn_(df_train = data_messidor_train, df_test = data_messidor_test,
+                            optimizationAlgorithm = "bohb",
+                            maxTime = 10,
+                            models = c("randomForest", "boosting", "svm", "naiveBayes", "l2-linear-classifier"))
+
+test_anneal_smac <- SmartML::autoRLearn(maxTime = 10, directory = "~/witchcraft/inst/extdata/messidor_train.csv",
+                                              testDirectory = "~/witchcraft/inst/extdata/messidor_test.csv",
+                                 classCol = "class",
+                                 nModels = 5) 
+
+```
+
+## Avila
+
+```{r}
+
+data_avila <- read_csv("~/witchcraft/inst/extdata/avila-ts.txt", col_names = F) %>%
+  bind_rows(read_csv("~/witchcraft/inst/extdata/avila-tr.txt", col_names = F)) %>%
+  rename(class = X11) %>%
+  mutate(class = as.factor(class))
+
+preproc_avila <- data_avila %>%
+  caret::preProcess(method = c("medianImpute", "center", "scale", "nzv", "corr"))
+
+preproc_dumvars <- dummyVars("class ~ .", data = data_avila)
+
+data_avila_final <- data_avila %>%
+  predict(preproc_dumvars, .) %>%
+  as.data.frame() %>%
+  bind_cols(data_avila %>% select(class))
+
+split_avila <- suppressWarnings(caret::createDataPartition(y = data_avila_final$class,
+                                    times = 1,
+                                    list = F,
+                                    p = 0.8))
+
+data_avila_train <- data_avila_final[split_avila,]
+
+data_avila_test <- data_avila_final[-split_avila,]
+
+test_avila_hb <- autoRlearn_(df_train = data_avila_train, df_test = data_avila_test,
+                            optimizationAlgorithm = "hyperband",
+                            maxTime = 1,
+                            models = c("randomForest", "boosting", "svm", "naiveBayes", "l2-linear-classifier"))
+
+test_avila_bohb <- autoRlearn_(df_train = data_avila_train, df_test = data_avila_test,
+                            optimizationAlgorithm = "bohb",
+                            maxTime = 10,
+                            models = c("randomForest", "boosting", "svm", "naiveBayes", "l2-linear-classifier"))
+
+test_avila_smac <- SmartML::autoRLearn(maxTime = 10, directory = "~/witchcraft/inst/extdata/avila_train.csv",
+                                              testDirectory = "~/witchcraft/inst/extdata/avila_test.csv",
+                                 classCol = "class",
+                                 nModels = 5) 
+
+
+```

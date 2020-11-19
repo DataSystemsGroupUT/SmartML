@@ -1,0 +1,44 @@
+{
+	"params":["eta", "max_depth", "nrounds", "verbose", "min_child_weight"],
+	"parents":["eta", "max_depth", "nrounds", "verbose", "min_child_weight"],
+	"verbose":
+	{
+	  "type":"continuous",
+	  "scale":"int",
+	  "minVal":"0",
+	  "maxVal":"0",
+	  "default":"0"
+	},
+	"nrounds":
+	{
+	  "type":"continuous",
+	  "scale":"int",
+	  "minVal":"10",
+	  "maxVal":"1000",
+	  "default":"10"
+	},
+	"eta":
+	{
+		"type":"continuous",
+		"scale":"double",
+		"minVal":"0.01",
+		"maxVal":"0.5",
+		"default":"0.3"
+	},
+	"max_depth":
+	{
+		"type":"continuous",
+		"scale":"int",
+		"minVal":"2",
+		"maxVal":"10",
+		"default":"6"
+	},
+	"min_child_weight":
+	{
+		"type":"continuous",
+		"scale":"int",
+		"minVal":"1",
+		"maxVal":"10",
+		"default":"1"
+	}
+}
